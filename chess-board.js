@@ -1,6 +1,7 @@
 //configuration
 var dark_color = 'brown';
 var light_color = 'rgb(230,220,230)';
+var selected_square_color = 'rgb(27, 119, 224)';
 var size_of_board = 0.95;
 var speed_of_move = 400;
 
@@ -8,21 +9,30 @@ var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 // selected_piece is a jQuery object with the selected piece in it.
 var selected_piece;
+var selected_square;
 
 var dimensions = {};
 
 var board;
+
+
+function set_background_color_to_default(square) {
+  if ((letters.indexOf(square.charAt(0)) + Number(square.charAt(1))) % 2 === 1) {
+    $('.square#' + square).css("background-color", dark_color);
+  } else {
+    $('.square#' + square).css("background-color", light_color);
+  }
+}
 
 function build_board() {
   $('body').append("<div id='board'></div>");
   board = $('#board');
   for (var i in letters) {
     for (var j = 1; j <= 8; j++) {
-      if ((Number(i) + j) % 2 === 1) {
-        board.append("<div class='square' id='" + letters[i] + j + "' style='background-color:" + dark_color + ";position:absolute' />");
-      } else {
-        board.append("<div class='square' id='" + letters[i] + j + "' style='background-color:" + light_color + ";position:absolute' />");
-      }
+      var square = letters[i] + j;
+      board.append("<div class='square' id='" + square + "' />");
+      set_background_color_to_default(square);
+      $('.square#' + square).css("position", "absolute");
     }
   }
   
@@ -98,35 +108,60 @@ function move_piece(from_square, to_square) {
 $(window).resize(resize_and_move_board);
 
 $(window).mouseup(function(e) {
-  drop_selected_piece(e);
+  if (selected_piece !== undefined) {
+    var dropped_square = get_square_from_mouse(e);
+    if (dropped_square !== undefined && selected_piece.attr("id") !== dropped_square) {
+      drop_piece(selected_piece.attr("id"), dropped_square);
+    }
+    selected_piece = undefined;
+  }
 });
 
 // e is an event object
 function selected_piece_to_mouse(e) {
   if (selected_piece === undefined) {
     return;
-  }
+  } 
   selected_piece.offset({top:(e.pageY - dimensions.square_width / 2), left:(e.pageX - dimensions.square_width / 2)});
 }
 
-function drop_selected_piece(e) {
-  var selected_square;
-  // find out what square mouse is on
-  var dropped_square = get_square_from_mouse(e);
-  if (dropped_square !== undefined) {
-    // remove a piece that is on this square
-    remove_piece(dropped_square);
-    // set the position of the selected piece to the position of the square it's on
-    selected_square = $(".square#" + dropped_square);
-    // change the id of the selected_piece to match the square it's being dropped on.
-    selected_piece.attr("id", dropped_square);
-  } else {
-    selected_square = $(".square#" + selected_piece.attr("id"));
-  }
-  selected_piece.offset(selected_square.offset());
-  selected_piece.css("z-index", "1");
-  selected_piece = undefined;
+// example of input is 'a4'
+function drop_piece(piece, square) {
+  piece = $('.piece#' + piece);
+  // if there's a piece on the square, remove it
+  remove_piece(square);
+  piece.attr("id", square);
+  piece.offset($('.square#' + square).offset());
+  piece.css("z-index", "1");
 }
+
+function deselect_square() {
+  if (selected_square !== undefined) {
+    set_background_color_to_default(selected_square);
+    selected_square = undefined;
+  }
+}
+
+function select_square(square) {
+  deselect_square();
+  selected_square = square;
+  $('.square#' + selected_square).css("background-color", selected_square_color);
+}
+  
+
+$('.square, .piece').live("click", function(e) { 
+  if (selected_square === undefined) {
+    // check to see if there's any piece on the square
+    if ($('.piece#' + $(this).attr('id')).length !== 0) {
+      select_square($(this).attr('id'));
+    }
+  } else {
+    // move piece to new square
+    var new_square = get_square_from_mouse(e);
+    drop_piece(selected_square, new_square);
+    deselect_square();
+  }
+});
   
 $('.piece').live("mousedown", function(e) {
   selected_piece = $(this);
