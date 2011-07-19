@@ -1,6 +1,6 @@
 // chess-trainer glues together the chess.js and chess-board.js
 
-function add_pieces_from_game_to_board (chess_engine, chess_board) {
+function sync_board_to_engine (chess_engine, chess_board) {
   chess_board.remove_piece()  // remove all the pieces
   for (var i in chess_engine.SQUARES) {
     var piece = chess_engine.get(chess_engine.SQUARES[i]);
@@ -11,10 +11,15 @@ function add_pieces_from_game_to_board (chess_engine, chess_board) {
 }
 
 var chess_engine = new Chess();
+
+function move_function (move_object) {
+  chess_engine.move(move_object);
+  sync_board_to_engine (chess_engine, chess_board);
+}
      
-var chess_board = new ChessBoard(chess_engine.move);
+var chess_board = new ChessBoard(move_function);
 chess_board.build_board();
 
 
 
-add_pieces_from_game_to_board (chess_engine, chess_board);
+sync_board_to_engine (chess_engine, chess_board);

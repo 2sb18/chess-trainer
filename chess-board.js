@@ -4,14 +4,14 @@
 // and it returns null if the move is not allowed and something like
 // { color: 'w', from: 'g2', to: 'g3', flags: 'n', piece: 'p', san: 'g3' } if it is. 
 
-var ChessBoard = function(move_verification_function) {
+var ChessBoard = function(move_function) {
 
   //configuration
   var dark_color = 'brown';
   var light_color = 'rgb(230,220,230)';
   var selected_square_color = 'rgb(27, 119, 224)';
   var size_of_board = 0.95;
-  var speed_of_move = 300;
+  var speed_of_move = 0;
 
   var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -132,7 +132,6 @@ var ChessBoard = function(move_verification_function) {
     $('.square#' + selected_square).css("background-color", selected_square_color);
   }
 
-  // was the board clicked on?
   $(document).click(function (e) {
     var square = get_square_from_mouse (e);
     if (selected_square === undefined) {
@@ -142,10 +141,10 @@ var ChessBoard = function(move_verification_function) {
       }
     } else {
       // move piece to new square
-      var move_result = move_verification_function({from: selected_square, to: square});
-      if (move_result !== null) {
-        move_piece(selected_square, square);
-      }
+      move_function({from: selected_square, to: square});
+      //if (move_result !== null) {   // the move_verification_function will update the chess-board
+      //  move_piece(selected_square, square);
+      //}
       deselect_square();
     }
   });
