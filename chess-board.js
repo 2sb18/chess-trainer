@@ -1,11 +1,17 @@
-var ChessBoard = function() {
+
+// move verification function is in the chess-trainer
+// it gets called like this: move_verification_function({from: 'g2', to: 'g3'})
+// and it returns null if the move is not allowed and something like
+// { color: 'w', from: 'g2', to: 'g3', flags: 'n', piece: 'p', san: 'g3' } if it is. 
+
+var ChessBoard = function(move_verification_function) {
 
   //configuration
   var dark_color = 'brown';
   var light_color = 'rgb(230,220,230)';
   var selected_square_color = 'rgb(27, 119, 224)';
   var size_of_board = 0.95;
-  var speed_of_move = 400;
+  var speed_of_move = 300;
 
   var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -15,6 +21,7 @@ var ChessBoard = function() {
 
   var board;
   
+  // body is a jQuery object containing the body.
   function build_board() {
     $('body').append("<div id='board'></div>");
     board = $('#board');
@@ -98,9 +105,14 @@ var ChessBoard = function() {
     });
   }
   
-      // example input is square = 'a4'
+  // if input is undefined, then remove all pieces
+  // if input is a string, it should be a square, like 'a4'. Then we remove that square.
   function remove_piece (square) {
-    $('.piece#' + square).remove();
+    if (square === undefined) {
+      $('.piece').remove();
+    } else if ("string" === typeof square) {
+      $('.piece#' + square).remove();
+    }
   }
 
   // events
@@ -130,29 +142,18 @@ var ChessBoard = function() {
       }
     } else {
       // move piece to new square
-      if (square !== selected_square) {
-        //drop_piece(selected_square, square);
+      var move_result = move_verification_function({from: selected_square, to: square});
+      if (move_result !== null) {
         move_piece(selected_square, square);
       }
       deselect_square();
     }
   });
-
-  // actions
-
-  //build_board(); 
-  //add_piece("bb", "a1");
-  //add_piece("wb", "e4");
-  //add_piece("wk", "g8");
-  //add_piece("bp", "a2");
-  //add_piece("bp", "d5");
-  //move_piece("a1", "g8");
-  //move_piece("e4", "a2");
   
   // PUBLIC API
   return {
-    build_board: function() {
-      build_board();
+    build_board: function () {
+      build_board ();
     },
     add_piece: function (piece, square) {
       add_piece (piece, square);
