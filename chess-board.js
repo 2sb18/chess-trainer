@@ -80,29 +80,20 @@ var ChessBoard = function(move_function) {
   // example: {piece: "bb", square: "a4"}
   function add_piece(piece, square) {
     // if there's a piece already there, remove it
-    remove_piece(square);
+    // if there's a piece and it's the same kind, do nothing
+    var current_piece = $('.piece#' + square);
+    if (current_piece.length !== 0) {
+      // if it's the same kind of piece, do nothing
+      if (current_piece.attr("src").indexOf(piece) !== -1) {
+        return;
+      } else {
+        remove_piece(square);
+      }
+    }
     board.append("<img class='piece' id='" + square + "' src='./img/" + piece + ".png' style='position:absolute' " +
       "ondragstart='return false' onselectstart='return false'/>");
     var jQuerySquare = $('.piece#' + square);
     jQuerySquare.css(get_position_and_size_from_square(jQuerySquare.attr('id')));
-  }
-
-  function move_piece(from_square, to_square) {
-    // get the piece that's being moved
-    var piece = $(".piece#" + from_square);
-    if (piece.length === 0) {
-      return;
-    }
-    var piece_to_remove = $('.piece#' + to_square);
-    piece.attr("id", to_square);
-    piece.css("z-index", 2);
-    piece.animate(get_position_and_size_from_square(to_square), {
-      duration: speed_of_move, 
-      complete: function() {
-        piece_to_remove.remove(); // remove any pieces on the destination square
-        piece.css("z-index", "");
-      }
-    });
   }
   
   // if input is undefined, then remove all pieces
@@ -156,9 +147,6 @@ var ChessBoard = function(move_function) {
     },
     add_piece: function (piece, square) {
       add_piece (piece, square);
-    },
-    move_piece: function (from_square, to_square) {
-      move_piece (from_square, to_square);
     },
     remove_piece: function (square) {
       remove_piece (square);

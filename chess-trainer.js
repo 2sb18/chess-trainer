@@ -1,10 +1,11 @@
 // chess-trainer glues together the chess.js and chess-board.js
 
 function sync_board_to_engine (chess_engine, chess_board) {
-  chess_board.remove_piece()  // remove all the pieces
   for (var i in chess_engine.SQUARES) {
     var piece = chess_engine.get(chess_engine.SQUARES[i]);
-    if (piece !== null) {
+    if (piece === null) {
+      chess_board.remove_piece(chess_engine.SQUARES[i]);
+    } else {
       chess_board.add_piece(piece.color + piece.type, chess_engine.SQUARES[i]);
     }
   }
