@@ -30,9 +30,11 @@ var ChessBoard = function(move_function) {
         var square = letters[i] + j;
         board.append("<img class='square' id='" + square + "' src='./img/b.gif' />");
         set_background_color_to_default(square);
-        $('.square#' + square).css("position", "absolute");
+        $('.square#' + square).css("position", "absolute").css("z-index", "-2");
       }
     }
+    // create arrow_canvas
+    $('body').append("<canvas id='arrow_canvas'></div>");
     resize_and_move_board();
   }
 
@@ -52,6 +54,9 @@ var ChessBoard = function(move_function) {
     result.width = dimensions.square_width;
     result.height = dimensions.square_width;
     return result;
+  }
+  
+  function get_center_of_square (square) {
   }
 
   // takes an event object e and returns the square like 'a4'
@@ -75,6 +80,9 @@ var ChessBoard = function(move_function) {
       var jQuerySquare = $(this);
       jQuerySquare.css(get_position_and_size_from_square(jQuerySquare.attr('id')));
     });
+    
+    // resize arrow canvas
+    $('#arrow_canvas').width(board_width).height(board_width).offset({top:dimensions.board_top, left:dimensions.board_left});
   }
 
   // example: {piece: "bb", square: "a4"}
@@ -90,7 +98,7 @@ var ChessBoard = function(move_function) {
         remove_piece(square);
       }
     }
-    board.append("<img class='piece' id='" + square + "' src='./img/" + piece + ".png' style='position:absolute' " +
+    board.append("<img class='piece' id='" + square + "' src='./img/" + piece + ".png' style='position:absolute;z-index:-1' " +
       "ondragstart='return false' onselectstart='return false'/>");
     var jQuerySquare = $('.piece#' + square);
     jQuerySquare.css(get_position_and_size_from_square(jQuerySquare.attr('id')));
@@ -150,6 +158,9 @@ var ChessBoard = function(move_function) {
     },
     remove_piece: function (square) {
       return remove_piece (square);
+    },
+    draw_arrows: function (arrows) {
+      return draw_arrows (arrows);
     }
   };
   
