@@ -143,13 +143,13 @@ var ChessBoard = function(move_function) {
   // PUBLIC API
   return {
     build_board: function () {
-      build_board ();
+      return build_board ();
     },
     add_piece: function (piece, square) {
-      add_piece (piece, square);
+      return add_piece (piece, square);
     },
     remove_piece: function (square) {
-      remove_piece (square);
+      return remove_piece (square);
     }
   };
   

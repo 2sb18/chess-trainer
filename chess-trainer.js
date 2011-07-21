@@ -13,14 +13,25 @@ function sync_board_to_engine (chess_engine, chess_board) {
 
 var chess_engine = new Chess();
 
+var chess_tree = new ChessTree();
+
 function move_function (move_object) {
-  chess_engine.move(move_object);
-  sync_board_to_engine (chess_engine, chess_board);
+  var move = chess_engine.move(move_object);
+  if (move !== null) {
+    chess_tree.moveTo(move.san);
+    sync_board_to_engine (chess_engine, chess_board);
+  }
 }
      
 var chess_board = new ChessBoard(move_function);
 chess_board.build_board();
 
-
-
 sync_board_to_engine (chess_engine, chess_board);
+
+$(document).keypress (function (e) {
+  if (e.keyCode === 37) {   // left arrow button
+    chess_engine.undo();
+    chess_tree.moveBack();
+    sync_board_to_engine (chess_engine, chess_board);
+  }
+});
