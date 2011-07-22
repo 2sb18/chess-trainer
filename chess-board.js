@@ -13,8 +13,8 @@ var ChessBoard = function(move_function) {
   var size_of_board = 0.95;
   var thicknes_of_arrow = 0.2;  // relative to the width of the squares
   var z_square = -2;
-  var z_piece  = -1;
-  var z_canvas = 1;
+  var z_piece  = 1;
+  var z_canvas = 2;
 
   var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -62,9 +62,9 @@ var ChessBoard = function(move_function) {
   }
 
   // takes an event object e and returns the square like 'a4'
-  function get_square_from_mouse (e) {
-    var file = Math.floor((e.pageX - dimensions.board_left) / dimensions.square_width);
-    var rank = 8 - Math.floor((e.pageY - dimensions.board_top) / dimensions.square_width);
+  function get_square_from_mouse (x, y) {
+    var file = Math.floor((x - dimensions.board_left) / dimensions.square_width);
+    var rank = 8 - Math.floor((y - dimensions.board_top) / dimensions.square_width);
     if (file < 0 || file > 7 || rank < 1 || rank > 8) {
       return undefined;
     }
@@ -126,9 +126,6 @@ var ChessBoard = function(move_function) {
   // an arrow consists of an object, {from, to, color}
   function draw_arrows (arrows) {
   
-  
-    arrows = [{from:'e2', to:'e4'}, {from:'d2', to:'d4'}, {from:'b1', to:'c3'}, {from:'g1', to:'f3'}];
-  
     stored_arrows = arrows;
   
   
@@ -178,9 +175,9 @@ var ChessBoard = function(move_function) {
     selected_square = square;
     $('.square#' + selected_square).css("background-color", selected_square_color);
   }
-
-  $(document).click(function (e) {
-    var square = get_square_from_mouse (e);
+  
+  function board_pushed (x, y) {
+    var square = get_square_from_mouse (x, y);
     if (selected_square === undefined) {
       // check to see if there's any piece on the square
       if ($('.piece#' + square).length !== 0) {
@@ -191,6 +188,16 @@ var ChessBoard = function(move_function) {
       move_function({from: selected_square, to: square});
       deselect_square();
     }
+  }
+
+  $(document).click(function (e) {
+    board_pushed(e.pageX, e.pageY);
+  });
+  
+  $(document).bind("touchstart", function(e) {
+    var target = window.event.targetTouches[0];
+    board_pushed(target.pageX, target.pageY);
+    return false;
   });
   
   // PUBLIC API
