@@ -37,13 +37,39 @@ var ChessTree = function() {
     return true;
   }
   
+  // move is an object that requires a from and a to
+  function deleteBranch (move) {
+    for (var i in currentNode.childNodes) {
+      if (currentNode.childNodes[i].move.from === move.from && currentNode.childNodes[i].move.to === move.to) {
+        currentNode.childNodes.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  //move is a chess.js move
+  function toggleCandidate (move) {
+    // try to find the move
+    for (var i in currentNode.childNodes) {
+      var child = currentNode.childNodes[i];
+      if (child.move.from === move.from && child.move.to === move.to) {
+        child.candidate = child.candidate ? false : true;
+        return;
+      }
+    }
+    
+    // move wasn't found, so create a new move with candidate set to true
+    currentNode.childNodes.push(new ChessNode(currentNode, move, true));
+  }
+  
   // an array of moves. a move looks like this {from:'a1', to:'e5'}
   function getNextMoves () {
     var result = [];
     for (var i in currentNode.childNodes) {
-      result.push({from: currentNode.childNodes[i].move.from, to: currentNode.childNodes[i].move.to});
+      var childNode = currentNode.childNodes[i];
+      result.push({from: childNode.move.from, to: childNode.move.to, candidate: childNode.candidate});
     }
-    console.log(currentNode);
     return result;
   }
   
@@ -57,6 +83,12 @@ var ChessTree = function() {
     },
     getNextMoves: function () {
       return getNextMoves ();
+    },
+    deleteBranch: function (move) {
+      return deleteBranch (move);
+    },
+    toggleCandidate: function (move) {
+      return toggleCandidate (move);
     },
     headNode: headNode
   };

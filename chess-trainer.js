@@ -5,6 +5,9 @@ var back_button_charCode = 116;   // t
 var black_to_move_color = 'rgb(220,220,220)';
 var white_to_move_color = 'rgb(242,242,242)';
 
+var shift_key_down = false;
+var ctrl_key_down = false;
+
 var engine = new Chess();
 var tree = new ChessTree();
 var board = new ChessBoard(move_function);
@@ -28,13 +31,24 @@ function sync_board () {
   board.draw_arrows(tree.getNextMoves());
 }
 
+// move_object 
 function move_function (move_object) {
   var move = engine.move(move_object);
-  if (move !== null) {
+  if (move === null) {
+    return;
+  }
+  
+  if (ctrl_key_down) {
+    engine.undo();
+    tree.deleteBranch(move);
+  } else if (shift_key_down) {
+    engine.undo();
+    tree.toggleCandidate(move);
+  } else {
     tree.moveTo(move);
     $('body').css("background-color", move.color === "w" ? black_to_move_color : white_to_move_color);
-    sync_board (engine, board);
   }
+  sync_board();
 }
      
 $(document).keypress (function (e) {
@@ -45,5 +59,17 @@ $(document).keypress (function (e) {
     }
     tree.moveBack();
     sync_board (engine, board);
+  }
+}).keydown (function (e) {
+  if (e.keyCode === 16) { // shift
+    shift_key_down = true;
+  } else if (e.keyCode === 17) {  // ctrl
+    ctrl_key_down = true;
+  }
+}).keyup (function (e) {
+  if (e.keyCode === 16) { // shift
+    shift_key_down = false;
+  } else if (e.keyCode === 17) {
+    ctrl_key_down = false;
   }
 });

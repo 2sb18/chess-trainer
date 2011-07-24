@@ -1,0 +1,3 @@
+- put heads on arrows. right now if you have d3 and d4, you can't see the d3.
+
+- move the engine into the tree. easier to keep them synched.

@@ -123,11 +123,10 @@ var ChessBoard = function(move_function) {
   }
   
   // arrows is an array of arrows
-  // an arrow consists of an object, {from, to, color}
+  // an arrow consists of an object, {from, to, candidate}
   function draw_arrows (arrows) {
   
     stored_arrows = arrows;
-  
   
     // this is with respect to the board
     function get_center_of_square (square) {
@@ -143,13 +142,14 @@ var ChessBoard = function(move_function) {
     canvas_element.width--;
     canvas_element.width++;
 
-  
-    canvas_context.strokeStyle = "rgba(100,100,100,0.5)";
     canvas_context.lineWidth = Math.round(dimensions.square_width * thicknes_of_arrow);
+    canvas_context.globalAlpha = 0.5;
+    
     
     for (var k in arrows) {
       var from = get_center_of_square (arrows[k].from);
       var to   = get_center_of_square (arrows[k].to);
+      canvas_context.strokeStyle = arrows[k].candidate ? "green" : "yellow";
       canvas_context.moveTo(from.left, from.top);
       canvas_context.lineTo(to.left, to.top);
     }
