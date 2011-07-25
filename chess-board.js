@@ -9,6 +9,9 @@ var ChessBoard = function(move_function) {
   //configuration
   var dark_color = 'brown';
   var light_color = 'rgb(230,220,230)';
+  var candidate_color = "rgb(92, 242, 162)";        // kindo of a green
+  var non_candidate_color = "rgb(255, 235, 105)";
+  var arrow_transparency = 0.7;
   var selected_square_color = 'rgb(27, 119, 224)';
   var size_of_board = 0.95;
   var thicknes_of_arrow = 0.2;  // relative to the width of the squares
@@ -17,14 +20,12 @@ var ChessBoard = function(move_function) {
   var z_canvas = 2;
 
   var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-
-  var selected_square;
-
-  var dimensions = {};
   
+  var selected_square;
+  var dimensions = {};
   var canvas_context;
-
   var board;
+  var whose_move = 'w';
   
   var stored_arrows = [];
   
@@ -50,10 +51,18 @@ var ChessBoard = function(move_function) {
       $('.square#' + square).css("background-color", light_color);
     }
   }
+  
+  function update_move(just_moved) {
+    if (just_moved === 'b') {
+      whose_move = 'w';
+    } else {
+      whose_move = 'b';
+    }
+  }
 
   // example input is square = 'a4'
   function get_position_and_size_from_square (square) {
-    result = {};
+    var result = {};
     result.left = dimensions.board_left + letters.indexOf(square.charAt(0)) * dimensions.square_width;
     result.top  = dimensions.board_top + (8 - Number(square.charAt(1))) * dimensions.square_width;
     result.width = dimensions.square_width;
@@ -143,19 +152,18 @@ var ChessBoard = function(move_function) {
     canvas_element.width++;
 
     canvas_context.lineWidth = Math.round(dimensions.square_width * thicknes_of_arrow);
-    canvas_context.globalAlpha = 0.5;
+    canvas_context.globalAlpha = arrow_transparency;
     
     
     for (var k in arrows) {
       var from = get_center_of_square (arrows[k].from);
       var to   = get_center_of_square (arrows[k].to);
-      canvas_context.strokeStyle = arrows[k].candidate ? "green" : "yellow";
+      canvas_context.beginPath();
+      canvas_context.strokeStyle = arrows[k].candidate ? candidate_color : non_candidate_color;
       canvas_context.moveTo(from.left, from.top);
       canvas_context.lineTo(to.left, to.top);
+      canvas_context.stroke();
     }
-    //canvas_context.moveTo(0, 0);
-    //canvas_context.lineTo(65, 65);
-    canvas_context.stroke();
     return canvas_context;
   }
  
@@ -180,7 +188,8 @@ var ChessBoard = function(move_function) {
     var square = get_square_from_mouse (x, y);
     if (selected_square === undefined) {
       // check to see if there's any piece on the square
-      if ($('.piece#' + square).length !== 0) {
+      // and that the piece selected is the right color
+      if ($('.piece#' + square).length !== 0 && $('.piece#' + square).attr("src").charAt(6) === whose_move) {
         select_square(square);
       }
     } else {
@@ -216,6 +225,9 @@ var ChessBoard = function(move_function) {
     },
     get_dimensions: function () {
       return dimensions;
+    },
+    update_move: function (just_moved) {
+      return update_move (just_moved);
     }
   };
   

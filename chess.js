@@ -150,6 +150,9 @@ var Chess = function(fen) {
   var move_number = 1;
   var history = [];
   var info = {};                // holds PGN header information.
+  
+  var move;   // put these here so variables
+  var moves;  // wouldn't be leaked into global namespace
 
   /* if the user passes in a fen string, load it, else default to
    * starting position
