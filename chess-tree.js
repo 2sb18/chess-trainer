@@ -49,13 +49,35 @@ var ChessTree = function() {
     return currentNode.move;
   }
   
+  // recursive function that allows you to perform a function on the elements of 
+  // every node in a branch
+  function searchBranch (headNode, func) {
+    for (var i in headNode.childNodes) {
+      var child = headNode.childNodes[i];
+      searchBranch (child, func);
+    }
+    func (headNode);
+  }
+      
   // move is an object that requires a from and a to
   // if it deletes the branch, it returns the currentNode move.
   // if it can't find a branch to delete, it returns null.
   function deleteBranch (move) {
     for (var i in currentNode.childNodes) {
       if (currentNode.childNodes[i].move.from === move.from && currentNode.childNodes[i].move.to === move.to) {
-        currentNode.childNodes.splice(i, 1);
+        // we've found the node to delete
+        // let's see how many nodes there are in total that will be deleted
+        var number_of_nodes = 0;
+        searchBranch (currentNode.childNodes[i], function (node) {
+          number_of_nodes++;
+        });
+        if (number_of_nodes > 1) {
+          if (confirm("You are about to delete " + number_of_nodes + " nodes. Bad ass.")) {
+            currentNode.childNodes.splice(i, 1);
+          }
+        } else {
+          currentNode.childNodes.splice(i, 1);
+        }
         return currentNode.move;
       }
     }

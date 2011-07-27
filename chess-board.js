@@ -4,7 +4,7 @@
 // and it returns null if the move is not allowed and something like
 // { color: 'w', from: 'g2', to: 'g3', flags: 'n', piece: 'p', san: 'g3' } if it is. 
 
-var ChessBoard = function(move_function) {
+var ChessBoard = function(move_function, move_back_function) {
 
   //configuration
   var dark_color = 'brown';
@@ -14,7 +14,7 @@ var ChessBoard = function(move_function) {
   var arrow_transparency = 0.7;
   var selected_square_color = 'rgb(27, 119, 224)';
   var size_of_board = 0.95;
-  var thicknes_of_arrow = 0.2;  // relative to the width of the squares
+  var thickness_of_arrow = 0.2;  // relative to the width of the squares
   var z_square = -2;
   var z_piece  = 1;
   var z_canvas = 2;
@@ -22,6 +22,7 @@ var ChessBoard = function(move_function) {
   var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
   
   var selected_square;
+  var touch_down_square;
   var dimensions = {};
   var canvas_context;
   var board;
@@ -71,7 +72,7 @@ var ChessBoard = function(move_function) {
   }
 
   // takes an event object e and returns the square like 'a4'
-  function get_square_from_mouse (x, y) {
+  function get_square_from_position (x, y) {
     var file = Math.floor((x - dimensions.board_left) / dimensions.square_width);
     var rank = 8 - Math.floor((y - dimensions.board_top) / dimensions.square_width);
     if (file < 0 || file > 7 || rank < 1 || rank > 8) {
@@ -151,7 +152,7 @@ var ChessBoard = function(move_function) {
     canvas_element.width--;
     canvas_element.width++;
 
-    canvas_context.lineWidth = Math.round(dimensions.square_width * thicknes_of_arrow);
+    canvas_context.lineWidth = Math.round(dimensions.square_width * thickness_of_arrow);
     canvas_context.globalAlpha = arrow_transparency;
     
     
@@ -184,8 +185,8 @@ var ChessBoard = function(move_function) {
     $('.square#' + selected_square).css("background-color", selected_square_color);
   }
   
-  function board_pushed (x, y) {
-    var square = get_square_from_mouse (x, y);
+  // example of square is 'a4'
+  function board_pushed (square) {
     if (selected_square === undefined) {
       // check to see if there's any piece on the square
       // and that the piece selected is the right color
@@ -200,14 +201,27 @@ var ChessBoard = function(move_function) {
   }
 
   $(document).click(function (e) {
-    board_pushed(e.pageX, e.pageY);
+    board_pushed(get_square_from_position (e.pageX, e.pageY));
   });
   
   $(document).bind("touchstart", function(e) {
     var target = window.event.targetTouches[0];
-    board_pushed(target.pageX, target.pageY);
+    touch_down_square = get_square_from_position(target.pageX, target.pageY);
     return false;
   });
+  
+  $(document).bind("touchend", function(e) {
+    var target = window.event.changedTouches[0];
+    var touch_up_square = get_square_from_position(target.pageX, target.pageY);
+    if (touch_down_square === touch_up_square) {
+      board_pushed (touch_up_square);
+    } else {
+      move_back_function();   // any dragging motion causes moving back right now.
+    }
+  });
+  
+
+
   
   // PUBLIC API
   return {

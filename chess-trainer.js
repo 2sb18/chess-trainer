@@ -9,7 +9,7 @@ var shift_key_down = false;
 var ctrl_key_down = false;
 
 var tree = new ChessTree();
-var board = new ChessBoard(move_function);
+var board = new ChessBoard(move_function, move_back_function);
 board.build_board();
 check_move_and_sync_board(undefined);
 
@@ -57,6 +57,10 @@ function move_function (move) {
     move = tree.moveTo(move);
   }
   check_move_and_sync_board (move);
+}
+
+function move_back_function () {
+  check_move_and_sync_board(tree.moveBack());
 }
      
 $(document).keypress (function (e) {
