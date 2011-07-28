@@ -14,7 +14,9 @@ var ChessBoard = function(move_function, move_back_function) {
   var arrow_transparency = 0.7;
   var selected_square_color = 'rgb(27, 119, 224)';
   var size_of_board = 0.95;
-  var thickness_of_arrow = 0.2;  // relative to the width of the squares
+  var thickness_of_arrow = 0.15;  // relative to the width of the squares
+  var length_of_arrow_head = 0.4; // relative to width of squares
+  var arrow_head_angle = 0.78          // in radians
   var z_square = -2;
   var z_piece  = 1;
   var z_canvas = 2;
@@ -163,6 +165,15 @@ var ChessBoard = function(move_function, move_back_function) {
       canvas_context.strokeStyle = arrows[k].candidate ? candidate_color : non_candidate_color;
       canvas_context.moveTo(from.left, from.top);
       canvas_context.lineTo(to.left, to.top);
+      // now drawing the head of the arrow
+      // angle is like standard co-ordinates
+      var angle = Math.atan2(from.top - to.top, from.left - to.left);
+      canvas_context.moveTo(to.left, to.top);
+      canvas_context.lineTo(to.left + length_of_arrow_head * dimensions.square_width * Math.cos(angle - arrow_head_angle), 
+                            to.top + length_of_arrow_head * dimensions.square_width * Math.sin(angle - arrow_head_angle));
+      canvas_context.moveTo(to.left, to.top);
+      canvas_context.lineTo(to.left + length_of_arrow_head * dimensions.square_width * Math.cos(angle + arrow_head_angle), 
+                            to.top + length_of_arrow_head * dimensions.square_width * Math.sin(angle + arrow_head_angle));
       canvas_context.stroke();
     }
     return canvas_context;

@@ -1,8 +1,6 @@
 
 - for deleting, raise an alert if you're deleting more than 1 node, and tell the user how many nodes are being deleted.
 
-- put heads on arrows. right now if you have d3 and d4, you can't see the d3.
-
 - for promotion, maybe just raise an alert.
 
 - maybe for the arrows, make the width signify the candidate moves, and the color signify how well we know a move.

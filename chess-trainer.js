@@ -51,6 +51,9 @@ function move_function (move) {
   // we use that to determine who's turn it is.
   if (ctrl_key_down) {
     move = tree.deleteBranch(move);
+    ctrl_key_down = false;    // with tree.deleteBranch(), an alert pops up that makes 
+                              // chess-trainer.js lose focus.
+                              // !!! may get rid of this at some point
   } else if (shift_key_down) {
     move = tree.toggleCandidate(move);
   } else {
