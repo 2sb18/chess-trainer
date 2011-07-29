@@ -1,12 +1,14 @@
 // chess-trainer glues together the chess.js and chess-board.js
 
 var back_button_charCode = 116;   // t
+var backspace_keyCode    = 8; 
 
 var black_to_move_color = 'rgb(220,220,220)';
 var white_to_move_color = 'rgb(242,242,242)';
 
 var shift_key_down = false;
 var ctrl_key_down = false;
+var typed_input = "";
 
 var tree = new ChessTree();
 var board = new ChessBoard(move_function, move_back_function);
@@ -20,6 +22,10 @@ function check_move_and_sync_board (move) {
   if (move === null) {  // move was not possible, so do nothing
     return;
   }
+  
+  // move is happening, so clear the typed_input
+  typed_input = "";t
+  
   if (move === undefined) { // this is the first move, so background color should be white
     $('body').css('background-color', white_to_move_color);
     board.update_move ('b');
@@ -67,8 +73,15 @@ function move_back_function () {
 }
      
 $(document).keypress (function (e) {
+  console.log
   if (e.charCode === back_button_charCode) {
     check_move_and_sync_board(tree.moveBack());
+  } else if (e.keyCode === backspace_keyCode) {
+    typed_input = typed_input.substr(0, typed_input.length - 1);
+  } else {  // add character to the typed_input and see if the move is possible
+    typed_input += String.fromCharCode(e.charCode);
+    console.log(typed_input);
+    check_move_and_sync_board (tree.moveTo(typed_input));
   }
 }).keydown (function (e) {
   if (e.keyCode === 16) { // shift

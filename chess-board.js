@@ -33,6 +33,7 @@ var ChessBoard = function(move_function, move_back_function) {
   var stored_arrows = [];
   
   // body is a jQuery object containing the body.
+  // build_board gets called automatically when
   function build_board() {
     $('body').append("<div id='board'></div>");
     board = $('#board');
