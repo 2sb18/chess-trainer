@@ -1,0 +1,17 @@
+1. d4 d5 [ 1... e5 ; 1... f5 ] 2. f4
+
+- d4: add as child of head node, change currentNode to d4 and update engine
+- d5: add as child of d4 node, change current Node to d5 and update engine
+
+- [ : change currentNode to it's parent d4 and undo engine. Enter a new function.
+
+- e5: add e5 as a child of d4, change currentNode to e5 and update engine
+
+- ; : somehow we have to change currentNode to d4 and undo engine.
+
+- f5: add f5 as a child of d4, change currentNode to f5 and update engine
+
+- ] : change currentNode to d4 and undo engine. move to childNode[0], which is
+d5
+
+- f4: add as child of d5, change currentNode to f4 and update engine

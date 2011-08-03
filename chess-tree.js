@@ -1,6 +1,8 @@
-var ChessTree = function() {
 
-  // the first node has a move = 'undefined'
+
+var ChessTree = function(pgn_string) {
+
+  // the first node has a parentNode = 'undefined'
   var ChessNode = function (parentNode, move, candidate) {
     this.move = move;     // this is the chess.js definition of a move. It has lots of good stuff
     this.parentNode = parentNode;
@@ -9,12 +11,117 @@ var ChessTree = function() {
     this.comments = "";
   }
 
-  var engine = new Chess();
-  var currentNode = new ChessNode(undefined);
-  var headNode = currentNode;
+  var engine;
+  var currentNode;
+  var headNode;
+	importPGN(pgn_string);
 
-
+  // sets the currentNode, headNode, and engine
+  function importPGN (pgn_string) {
   
+    engine = new Chess();
+    headNode = new ChessNode(undefined);
+		currentNode = headNode;		// need to use currentNode because moveTo
+															// uses it.
+    
+    if (pgn_string === undefined || pgn_string === "") {
+      return;
+    }
+    
+    var position = 0;    // position in string
+		var next_space;
+		
+		// this gets called for every new [
+		// everything gets added onto the node
+		function pgn_string_to_node (node) {
+			while ( 1 ) {
+				// look for the next space
+				next_space = pgn_string.indexOf(" ", position);
+				if (next_space === -1) {
+					next_space = pgn_string.length;
+				}
+				var token = pgn_string.substring(position, next_space);
+				// check to see if potential_move looks like 3. or 3... or is nothing
+				if (token === "" || token.charAt(0).search(/[1-9]/) !== -1) {
+					// move on to the next token
+				} else if (token === '[') {
+					if (moveBack() === false) {
+						throw "couldn't move back!";
+					}
+					position = next_space + 1;
+					pgn_string_to_node (currentNode);
+				} else if (token === ";") {
+					// keep undoing until node === currentNode
+					while (node !== currentNode) {
+						if (moveBack() === false) {
+							throw "trying to get back but we can't";
+						}
+					}
+				} else if (token === "]") {
+					while (node !== currentNode) {
+						if (moveBack() === false) {
+							throw "trying to get back but we can't (2)";
+						}
+						moveTo (currentNode.childNodes[0].move);
+						return;
+					}
+				} else {
+					// okay, now we see if it's a real move
+					var the_move = moveTo(token);
+					if (the_move === null) {
+						throw token + " is not a move we can import!";
+					}
+				}
+				position = next_space + 1;
+				if (position >= pgn_string.length) {
+					break;
+				}
+			}
+		}
+		
+		pgn_string_to_node (headNode);
+		
+		currentNode = headNode;
+    engine = new Chess();   // reset the chess engine
+		
+		console.log(exportPGN());
+  }
+	
+	function exportPGN() {
+	
+		var result = [];
+		
+		function node_to_pgn_array (node) {
+			if (node.move !== undefined) {
+				result.push(node.move.san);
+			}
+			while (1) {
+				if (node.childNodes.length === 0) {
+					return;
+				} else if (node.childNodes.length === 1) {
+					result.push(node.childNodes[0].move.san);
+				} else {	//there are multiple childNodes, so we need variations
+					result.push(node.childNodes[0].move.san);
+					result.push("[");
+					for (var i = 1; i < node.childNodes.length; i++) {
+						node_to_pgn_array (node.childNodes[i]);
+						if (i < node.childNodes.length - 1) {
+							result.push(";");
+						}
+					}
+					result.push("]");
+				}
+				node = node.childNodes[0];
+			}
+		}
+		node_to_pgn_array(headNode);
+		
+		return result.join(" ");
+			
+	}
+			
+		
+ 
   // move to a descendant node
   // if that node does not exist, create it
   // move just has a 'from' and 'to'
@@ -33,8 +140,12 @@ var ChessTree = function() {
       }
     }
     // move doesn't exist in tree, so we must create it
+		// if this is the only childNode, make candidate move true
     var newChildNode = new ChessNode(currentNode, move);
     currentNode.childNodes.push(newChildNode);
+		if (currentNode.childNodes.length === 1) {
+			newChildNode.candidate = true;
+		}
     currentNode = newChildNode;
     return move;
   }
@@ -97,12 +208,13 @@ var ChessTree = function() {
       var child = currentNode.childNodes[i];
       if (child.move.from === move.from && child.move.to === move.to) {
         child.candidate = child.candidate ? false : true;
-        return;
+        return {color:move.color === "w" ? "b" : "w"};
       }
     }
     
     // move wasn't found, so create a new move with candidate set to true
     currentNode.childNodes.push(new ChessNode(currentNode, move, true));
+		return {color:move.color === "w" ? "b" : "w"};
   }
   
   // an array of moves. a move looks like this {from:'a1', to:'e5'}

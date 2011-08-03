@@ -5,3 +5,7 @@
 - add comments
 
 - importing/exporting data to and from the PGN format.
+
+- be able to flip board
+
+- if there's no candidate moves yet, make the added move a candidate move
