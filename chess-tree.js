@@ -44,7 +44,7 @@ var ChessTree = function(pgn_string) {
 				// check to see if potential_move looks like 3. or 3... or is nothing
 				if (token === "" || token.charAt(0).search(/[1-9]/) !== -1) {
 					// move on to the next token
-				} else if (token === '[') {
+				} else if (token === '(') {
 					if (moveBack() === false) {
 						throw "couldn't move back!";
 					}
@@ -57,7 +57,7 @@ var ChessTree = function(pgn_string) {
 							throw "trying to get back but we can't";
 						}
 					}
-				} else if (token === "]") {
+				} else if (token === ")") {
 					while (node !== currentNode) {
 						if (moveBack() === false) {
 							throw "trying to get back but we can't (2)";
@@ -90,26 +90,35 @@ var ChessTree = function(pgn_string) {
 	function exportPGN() {
 	
 		var result = [];
+    
+    function push_node (node) {
+      if (node.move !== undefined) {
+        result.push(node.move.san);
+      }
+      if (node.comments !== "") {
+        result.push("{");
+        result.push(node.comments);
+        result.push("}");
+      }
+    }
 		
 		function node_to_pgn_array (node) {
-			if (node.move !== undefined) {
-				result.push(node.move.san);
-			}
+      push_node (node);
 			while (1) {
 				if (node.childNodes.length === 0) {
 					return;
 				} else if (node.childNodes.length === 1) {
-					result.push(node.childNodes[0].move.san);
+					push_node (node.childNodes[0]);
 				} else {	//there are multiple childNodes, so we need variations
-					result.push(node.childNodes[0].move.san);
-					result.push("[");
+					push_node (node.childNodes[0]);
+					result.push("(");
 					for (var i = 1; i < node.childNodes.length; i++) {
 						node_to_pgn_array (node.childNodes[i]);
 						if (i < node.childNodes.length - 1) {
 							result.push(";");
 						}
 					}
-					result.push("]");
+					result.push(")");
 				}
 				node = node.childNodes[0];
 			}
@@ -236,6 +245,17 @@ var ChessTree = function(pgn_string) {
     return pieces;
   }
   
+  // this is like how jQuery does get/set. If you provide a comment_string,
+  // the comment for the currentNode is set, if you don't, the comment for 
+  // the currentNode is returned.
+  function comments (comments_string) {
+    if (comments_string === undefined) {
+      return currentNode.comments;
+    } else {
+      currentNode.comments = comments_string;
+    }
+  }
+  
   // PUBLIC API
   return {
     moveTo: function (move) {
@@ -255,6 +275,12 @@ var ChessTree = function(pgn_string) {
     },
     getPieces: function () {
       return getPieces ();
+    },
+    comments: function (comments_string) {
+      return comments (comments_string);
+    },
+    exportPGN: function () {
+      return exportPGN ();
     }
   };
 };

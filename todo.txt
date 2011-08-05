@@ -5,3 +5,5 @@
 - add comments
 
 - be able to flip board
+
+- mouse overs on arrows show comments

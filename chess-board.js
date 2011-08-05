@@ -13,7 +13,6 @@ var ChessBoard = function(move_function, move_back_function) {
   var non_candidate_color = "rgb(255, 235, 105)";
   var arrow_transparency = 0.7;
   var selected_square_color = 'rgb(27, 119, 224)';
-  var size_of_board = 0.95;
   var thickness_of_arrow = 0.15;  // relative to the width of the squares
   var length_of_arrow_head = 0.4; // relative to width of squares
   var arrow_head_angle = 0.78          // in radians
@@ -45,7 +44,6 @@ var ChessBoard = function(move_function, move_back_function) {
         $('.square#' + square).css("position", "absolute").css("z-index", z_square);
       }
     }
-    resize_and_move_board();
   }
   build_board();  // call build_board when chess-board is created
 
@@ -84,13 +82,12 @@ var ChessBoard = function(move_function, move_back_function) {
     }
     return letters[file] + rank;
   }
-   
-  function resize_and_move_board() {
-    var smaller_dimension = $(window).height() > $(window).width() ? $(window).width() : $(window).height();
-    var board_width = Math.round(smaller_dimension * size_of_board);
-    dimensions.square_width = Math.round(board_width / 8);
-    dimensions.board_top = Math.round($(window).height() / 2 - board_width / 2);
-    dimensions.board_left = Math.round($(window).width() / 2 - board_width / 2);
+  
+  // info is an object with top, left, length
+  function resize_and_move_board(info) {
+    dimensions.square_width = Math.round(info.length / 8);
+    dimensions.board_top = info.top;
+    dimensions.board_left = info.left;
     
     $('.square, .piece').each(function(index, element) {
       var jQuerySquare = $(this);
@@ -99,7 +96,7 @@ var ChessBoard = function(move_function, move_back_function) {
     
     // remove old canvas, and create new one based on the new dimensions.
     $('canvas#arrow_canvas').remove();
-    $('body').append("<canvas id='arrow_canvas' width='" + board_width + "' height='" + board_width + "'></div>");
+    $('body').append("<canvas id='arrow_canvas' width='" + info.length + "' height='" + info.length + "'></div>");
     $('canvas#arrow_canvas').offset({left:dimensions.board_left, top:dimensions.board_top}).css("z-index", z_canvas);
     canvas_context = $('canvas#arrow_canvas').get(0).getContext('2d');
     
@@ -160,6 +157,8 @@ var ChessBoard = function(move_function, move_back_function) {
     canvas_context.globalAlpha = arrow_transparency;
     
     
+    //alert("canvas top is " + $('#arrow_canvas').position().top + " and left is " + $('#arrow_canvas').position().left);
+    
     for (var k in arrows) {
       var from = get_center_of_square (arrows[k].from);
       var to   = get_center_of_square (arrows[k].to);
@@ -182,8 +181,6 @@ var ChessBoard = function(move_function, move_back_function) {
   }
  
   // events
-
-  $(window).resize(resize_and_move_board);
 
   function deselect_square() {
     if (selected_square !== undefined) {
@@ -233,11 +230,11 @@ var ChessBoard = function(move_function, move_back_function) {
     }
   });
   
-
-
-  
   // PUBLIC API
   return {
+    resize_and_move_board: function (info) {
+      return resize_and_move_board (info);
+    },
     add_piece: function (piece, square) {
       return add_piece (piece, square);
     },
