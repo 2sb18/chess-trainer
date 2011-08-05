@@ -47,6 +47,7 @@ var ChessBoard = function(move_function, move_back_function) {
     }
     resize_and_move_board();
   }
+  build_board();  // call build_board when chess-board is created
 
   function set_background_color_to_default(square) {
     if ((letters.indexOf(square.charAt(0)) + Number(square.charAt(1))) % 2 === 1) {
@@ -237,9 +238,6 @@ var ChessBoard = function(move_function, move_back_function) {
   
   // PUBLIC API
   return {
-    build_board: function () {
-      return build_board ();
-    },
     add_piece: function (piece, square) {
       return add_piece (piece, square);
     },
@@ -248,9 +246,6 @@ var ChessBoard = function(move_function, move_back_function) {
     },
     draw_arrows: function (arrows) {
       return draw_arrows (arrows);
-    },
-    get_dimensions: function () {
-      return dimensions;
     },
     update_move: function (just_moved) {
       return update_move (just_moved);
