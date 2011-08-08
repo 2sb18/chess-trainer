@@ -62,9 +62,9 @@ var ChessTree = function(pgn_string) {
 						if (moveBack() === false) {
 							throw "trying to get back but we can't (2)";
 						}
-						moveTo (currentNode.childNodes[0].move);
-						return;
-					}
+          }
+					moveTo (currentNode.childNodes[0].move);
+					return;
 				} else if (token === "{") {
           // look for " }"
           var start_of_comment = next_space + 1;
@@ -73,7 +73,7 @@ var ChessTree = function(pgn_string) {
             throw "can't find the end of the comment";
           }
           currentNode.comments = pgn_string.slice(start_of_comment, end_of_comment);
-          next_space = end_of_comment + 1;
+          next_space = end_of_comment + 2;
         } else {
 					// okay, now we see if it's a real move
 					var the_move = moveTo(token);

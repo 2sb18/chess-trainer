@@ -191,7 +191,7 @@ $(document).keypress (function (e) {
     ctrl_key_down = false;
   }
 }).ready (function (e) {
-  $.ajax({url: 'repertoire.txt',
+  $.ajax({url: 'file:///C:/Users/Steve/Documents/My%20Dropbox/Public/chess-board/repertoire.txt',
           dataType: 'text',
           success: function (data) {
             import_repertoire (data)
