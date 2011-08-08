@@ -2,8 +2,6 @@
 
 - maybe for the arrows, make the width signify the candidate moves, and the color signify how well we know a move.
 
-- add comments
-
 - be able to flip board
 
 - mouse overs on arrows show comments

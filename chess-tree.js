@@ -65,7 +65,16 @@ var ChessTree = function(pgn_string) {
 						moveTo (currentNode.childNodes[0].move);
 						return;
 					}
-				} else {
+				} else if (token === "{") {
+          // look for " }"
+          var start_of_comment = next_space + 1;
+          var end_of_comment = pgn_string.indexOf(" }", next_space);
+          if (end_of_comment === -1) {
+            throw "can't find the end of the comment";
+          }
+          currentNode.comments = pgn_string.slice(start_of_comment, end_of_comment);
+          next_space = end_of_comment + 1;
+        } else {
 					// okay, now we see if it's a real move
 					var the_move = moveTo(token);
 					if (the_move === null) {
@@ -97,7 +106,9 @@ var ChessTree = function(pgn_string) {
       }
       if (node.comments !== "") {
         result.push("{");
-        result.push(node.comments);
+        // escape the } with \
+        var comments = node.comments.replace(/}/g, '\\}');
+        result.push(comments);
         result.push("}");
       }
     }
@@ -256,6 +267,10 @@ var ChessTree = function(pgn_string) {
     }
   }
   
+  function movesString () {
+    return engine.pgn();
+  }
+  
   // PUBLIC API
   return {
     moveTo: function (move) {
@@ -281,6 +296,12 @@ var ChessTree = function(pgn_string) {
     },
     exportPGN: function () {
       return exportPGN ();
+    },
+    importPGN: function (repertoire_string) {
+      return importPGN (repertoire_string);
+    },
+    movesString: function () {
+      return movesString ();
     }
   };
 };

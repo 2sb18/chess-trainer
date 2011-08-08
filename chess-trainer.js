@@ -26,6 +26,10 @@ var typed_input = "";
 
 var pgn = '';
 
+$('body').append("<input type='text' id='move_text'></input>");
+var move_text = $('#move_text');
+move_text.attr("disabled", "true");
+
 $('body').append("<textarea id='comments'></textarea>");
 var comments = $('#comments');
 comments.css("resize", "none");
@@ -36,31 +40,20 @@ var save_comments = $('#save_comments');
 $('body').append("<button id='export_button' type='button'>export</button>");
 var export_button = $('#export_button');
 
+$('body').append("<p id='moves'></p>");
+var moves = $('#moves');
+
 var tree = new ChessTree(pgn);
 var board = new ChessBoard(move_function, move_back_function);
+
 resize_chess_trainer();
+
 check_move_and_sync_board(undefined);
 
+resize_chess_trainer();     // !!!! don't know why I have to do this twice
 
-// syncs the board to the engine
-// the engine tells it where the pieces are
-// the tree tells it where the arrows are.
-function check_move_and_sync_board (move) {
-  if (move === null) {  // move was not possible, so do nothing
-    return;
-  }
-  
-  // move is happening, so clear the typed_input
-  typed_input = "";
-  
-  if (move === undefined) { // this is the first move, so background color should be white
-    $('body').css('background-color', white_to_move_color);
-    board.update_move ('b');
-  } else {
-    $('body').css("background-color", move.color === "w" ? black_to_move_color : white_to_move_color);
-    board.update_move (move.color);
-  }
-  
+
+function sync_board() {
   // put the pieces in the right spots
   // pieces is an array of pieces on the board
   // there's an element for every square on the board
@@ -76,8 +69,33 @@ function check_move_and_sync_board (move) {
   // put the arrows in the right spots
   board.draw_arrows(tree.getNextMoves());
   
-  // update the comments box
+  // update the comments box and disable saving, since nothing has changed
   comments.val(tree.comments());
+  save_comments.attr("disabled", "true");
+  save_comments.css("background-color", "");
+  moves.html(tree.movesString());
+}  
+  
+// syncs the board to the engine
+// the engine tells it where the pieces are
+// the tree tells it where the arrows are.
+function check_move_and_sync_board (move) {
+  if (move === null) {  // move was not possible, so do nothing
+    return;
+  }
+  
+  // move is happening, so clear the typed_input
+  typed_input = "";
+  move_text.val(typed_input);
+  
+  if (move === undefined) { // this is the first move, so background color should be white
+    $('body').css('background-color', white_to_move_color);
+    board.update_move ('b');
+  } else {
+    $('body').css("background-color", move.color === "w" ? black_to_move_color : white_to_move_color);
+    board.update_move (move.color);
+  }
+  sync_board();
 }
 
 // move is just 'from' and 'to'
@@ -111,19 +129,37 @@ function resize_chess_trainer() {
 
   // comment box and save button
   // comments is somehow changing the canvas
-  comments.offset({top:300, left: info.left + info.length + 10}).width(300).height(300);
-  save_comments.offset({top: 610, left: info.left + info.length + 20});
-  export_button.offset({top: 610, left: info.left + info.length + 250});
+  move_text.offset({top: info.top, left: info.left + info.length + 10}).width(100).height(20);
+  comments.offset({top:info.top + 50, left: info.left + info.length + 10}).width(300).height(300);
+  save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
+  export_button.offset({top: info.top + 360, left: info.left + info.length + 250});
+  moves.offset({top: info.top + 400, left: info.left + info.length + 10}).width(300). height(600);
   
   board.resize_and_move_board(info);  // this has to come last for some reason
 }
 
+function import_repertoire (repertoire_string) {
+  tree.importPGN (repertoire_string);
+  $('body').css('background-color', white_to_move_color);
+  board.update_move ('b');
+  sync_board();
+}
+  
+
 save_comments.click (function (e) {
   tree.comments(comments.val());
+  save_comments.attr("disabled", "true");
+  save_comments.css("background-color", "");
 });
 
 export_button.click (function (e) {
   comments.val(tree.exportPGN());
+});
+
+// if we type anything in the comments box, enable button
+comments.keypress (function (e) {
+  save_comments.removeAttr("disabled");
+  save_comments.css("background-color", "red");
 });
   
 $(document).keypress (function (e) {
@@ -136,8 +172,10 @@ $(document).keypress (function (e) {
     check_move_and_sync_board(tree.moveBack());
 	} else if (e.keyCode === backspace_keyCode) {
     typed_input = typed_input.substr(0, typed_input.length - 1);
+    move_text.val(typed_input);
   } else {  // add character to the typed_input and see if the move is possible
     typed_input += String.fromCharCode(e.charCode);
+    move_text.val(typed_input);
     check_move_and_sync_board (tree.moveTo(typed_input));
   }
 }).keydown (function (e) {
@@ -152,6 +190,12 @@ $(document).keypress (function (e) {
   } else if (e.keyCode === 17) {
     ctrl_key_down = false;
   }
+}).ready (function (e) {
+  $.ajax({url: 'repertoire.txt',
+          dataType: 'text',
+          success: function (data) {
+            import_repertoire (data)
+          }});
 });
 
 $(window).resize(resize_chess_trainer);
