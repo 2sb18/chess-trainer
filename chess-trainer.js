@@ -1,7 +1,7 @@
 // chess-trainer glues together the chess.js and chess-board.js
 
-var back_button_charCode = 116;   // t
-var backspace_keyCode    = 8; 
+var move_back_button = 't';
+var move_back_button_charCode = 116;   // t
 
 var black_to_move_color = 'rgb(220,220,220)';
 var white_to_move_color = 'rgb(242,242,242)';
@@ -12,7 +12,6 @@ var size_of_board = 0.95;
 
 var shift_key_down = false;
 var ctrl_key_down = false;
-var typed_input = "";
 
 
 
@@ -28,7 +27,6 @@ var pgn = '';
 
 $('body').append("<input type='text' id='move_text'></input>");
 var move_text = $('#move_text');
-move_text.attr("disabled", "true");
 
 $('body').append("<textarea id='comments'></textarea>");
 var comments = $('#comments');
@@ -84,9 +82,7 @@ function check_move_and_sync_board (move) {
     return;
   }
   
-  // move is happening, so clear the typed_input
-  typed_input = "";
-  move_text.val(typed_input);
+
   
   if (move === undefined) { // this is the first move, so background color should be white
     $('body').css('background-color', white_to_move_color);
@@ -96,6 +92,9 @@ function check_move_and_sync_board (move) {
     board.update_move (move.color);
   }
   sync_board();
+  
+  // move is happening, so clear the text in move_text
+  move_text.val("");
 }
 
 // move is just 'from' and 'to'
@@ -161,6 +160,14 @@ comments.keypress (function (e) {
   save_comments.removeAttr("disabled");
   save_comments.css("background-color", "red");
 });
+
+move_text.keyup (function (e) {
+  if (move_text.val().indexOf(move_back_button) !== -1) {
+    check_move_and_sync_board(tree.moveBack());
+	} else {
+    check_move_and_sync_board (tree.moveTo(move_text.val()));
+  }
+});
   
 $(document).keypress (function (e) {
   // only take in keypresses if the body has focus (if the user is typing in 
@@ -168,16 +175,9 @@ $(document).keypress (function (e) {
   if ( $(document.activeElement).get(0) !== $('body').get(0) ) {
     return;
   }
-  if (e.charCode === back_button_charCode) {
+  if (e.charCode === move_back_button_charCode) {
     check_move_and_sync_board(tree.moveBack());
-	} else if (e.keyCode === backspace_keyCode) {
-    typed_input = typed_input.substr(0, typed_input.length - 1);
-    move_text.val(typed_input);
-  } else {  // add character to the typed_input and see if the move is possible
-    typed_input += String.fromCharCode(e.charCode);
-    move_text.val(typed_input);
-    check_move_and_sync_board (tree.moveTo(typed_input));
-  }
+	}
 }).keydown (function (e) {
   if (e.keyCode === 16) { // shift
     shift_key_down = true;
@@ -191,7 +191,7 @@ $(document).keypress (function (e) {
     ctrl_key_down = false;
   }
 }).ready (function (e) {
-  $.ajax({url: 'file:///C:/Users/Steve/Documents/My%20Dropbox/Public/chess-board/repertoire.txt',
+  $.ajax({url: 'repertoire.txt',
           dataType: 'text',
           success: function (data) {
             import_repertoire (data)
