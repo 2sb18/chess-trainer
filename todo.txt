@@ -6,6 +6,6 @@
 
 - mouse overs on arrows show comments
 
-- browsers suck at backspace. make the move text box editable and type moves directly into it.
-
 - show move just played.
+
+- save candidate moves and score
