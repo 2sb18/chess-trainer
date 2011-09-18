@@ -136,7 +136,7 @@ function resize_chess_trainer() {
   save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
   import_button.offset({top: info.top + 360, left: info.left + info.length + 180});
   export_button.offset({top: info.top + 360, left: info.left + info.length + 250});
-  score_text.offset({top: info.top + 390, left: info.left + info.length + 20});
+  score_text.offset({top: info.top + 390, left: info.left + info.length + 20}).width(100);
   export_pgn_button.offset({top: info.top + 390, left: info.left + info.length + 180 });
   moves.offset({top: info.top + 420, left: info.left + info.length + 10}).width(300). height(600);
   
