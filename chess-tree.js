@@ -275,6 +275,15 @@ var ChessTree = function(pgn_string) {
     }
   }
   
+  // getter/setter
+  function score (score_value) {
+    if (score_value === undefined) {
+      return currentNode.score;
+    } else {
+      currentNode.score = score_value;
+    }
+  }
+  
   function movesString () {
     return engine.pgn();
   }
@@ -301,6 +310,9 @@ var ChessTree = function(pgn_string) {
     },
     comments: function (comments_string) {
       return comments (comments_string);
+    },
+    score: function (score_value) {
+      return score ();
     },
     exportRepertoire: function () {
       return exportRepertoire ();

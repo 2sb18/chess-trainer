@@ -1,4 +1,4 @@
-{ This is the London System. We're on 1C at 11...%0 } d4 { %0 } d5 { %0 } Bf4 { White makes it clear that he intends to play a London System.%0 } c5 { Albin Reversed.
+{ This is the London System. We're on 1C at 11...%0.1 } d4 { %0 } d5 { %0 } Bf4 { White makes it clear that he intends to play a London System.%0 } c5 { Albin Reversed.
 
 %0 } ( Nf6 { %0 } e3 { %0 } c5 { %0 } ; e6 { %0 } e3 { %0 } c5 { %0 } ) e4 { Morris Gambit. It's like the Albin Counter gambit but with an extra move.
 

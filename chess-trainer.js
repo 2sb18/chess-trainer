@@ -38,6 +38,9 @@ var moves = $('#moves');
 $('body').append("<select id='mode_selector'><option value='editing'>editing</option><option value='training'>training</option></select>");
 var mode_selector = $('#mode_selector');
 
+$('body').append("<p id='score_text'></p>");
+var score_text = $('#score_text');
+
 var tree = new ChessTree(pgn);
 var board = new ChessBoard(move_function, move_back_function);
 
@@ -68,6 +71,7 @@ function sync_board() {
   comments.val(tree.comments());
   save_comments.attr("disabled", "true");
   save_comments.css("background-color", "");
+  score_text.html("score: " + Math.round(tree.score()*100)/100);
   moves.html(tree.movesString());
 }  
   
@@ -132,6 +136,7 @@ function resize_chess_trainer() {
   save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
   import_button.offset({top: info.top + 360, left: info.left + info.length + 180});
   export_button.offset({top: info.top + 360, left: info.left + info.length + 250});
+  score_text.offset({top: info.top + 390, left: info.left + info.length + 20});
   export_pgn_button.offset({top: info.top + 390, left: info.left + info.length + 180 });
   moves.offset({top: info.top + 420, left: info.left + info.length + 10}).width(300). height(600);
   
