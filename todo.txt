@@ -10,6 +10,8 @@
 
 - save candidate moves and score
 
+- if there's no candidate move, then make any move entered the candidate move
+
 
 September 17, 2011
 1. export the score
