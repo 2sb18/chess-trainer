@@ -29,6 +29,9 @@ var import_button = $('#import_button');
 $('body').append("<button id='export_button' type='button'>export</button>");
 var export_button = $('#export_button');
 
+$('body').append("<button id='export_pgn_button' type='button'>export pgn</button>");
+var export_pgn_button = $('#export_pgn_button');
+
 $('body').append("<p id='moves'></p>");
 var moves = $('#moves');
 
@@ -123,20 +126,22 @@ function resize_chess_trainer() {
   // comment box and save button
   // comments is somehow changing the canvas
   move_text.offset({top: info.top, left: info.left + info.length + 10}).width(100).height(20);
+  mode_selector.offset({top: info.top, left: info.left + info.length + 230}).width(80);
+  
   comments.offset({top:info.top + 50, left: info.left + info.length + 10}).width(300).height(300);
   save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
-  export_button.offset({top: info.top + 360, left: info.left + info.length + 250});
   import_button.offset({top: info.top + 360, left: info.left + info.length + 180});
-  moves.offset({top: info.top + 400, left: info.left + info.length + 10}).width(300). height(600);
-  mode_selector.offset({top: info.top, left: info.left + info.length + 230}).width(80);
+  export_button.offset({top: info.top + 360, left: info.left + info.length + 250});
+  export_pgn_button.offset({top: info.top + 390, left: info.left + info.length + 180 });
+  moves.offset({top: info.top + 420, left: info.left + info.length + 10}).width(300). height(600);
   
   board.resize_and_move_board(info);  // this has to come last for some reason
 }
 
 
 
-function import_repertoire (repertoire_string) {
-  tree.importPGN (repertoire_string);
+function importRepertoire (repertoire_string) {
+  tree.importRepertoire (repertoire_string);
   $('body').css('background-color', white_to_move_color);
   board.update_move ('b');
   sync_board();
@@ -150,11 +155,15 @@ save_comments.click (function (e) {
 });
 
 export_button.click (function (e) {
+  comments.val(tree.exportRepertoire());
+});
+
+export_pgn_button.click (function (e) {
   comments.val(tree.exportPGN());
 });
 
 import_button.click (function (e) {
-  import_repertoire (comments.val());
+  importRepertoire (comments.val());
 });
 
 // if we type anything in the comments box, enable button

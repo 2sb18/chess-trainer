@@ -15,12 +15,12 @@ var ChessTree = function(pgn_string) {
   var engine;
   var currentNode;
   var headNode;
-	importPGN(pgn_string);
+	importRepertoire(pgn_string);
 
   // sets the currentNode, headNode, and engine
   // status_function should have one parameter, a text input
   // we use this to tell the chess-trainer how far the import has come.
-  function importPGN ( pgn_string ) {
+  function importRepertoire ( pgn_string ) {
   
     engine = new Chess();
     headNode = new ChessNode(undefined);
@@ -98,10 +98,9 @@ var ChessTree = function(pgn_string) {
 		currentNode = headNode;
     engine = new Chess();   // reset the chess engine
 		
-		console.log(exportPGN());
-  }
+	}
 	
-	function exportPGN() {
+	function exportRepertoire() {
 	
 		var result = [];
     
@@ -144,6 +143,10 @@ var ChessTree = function(pgn_string) {
 		return result.join(" ");
 			
 	}
+  
+  function exportPGN () {
+    return engine.pgn();
+  }
 			
 		
  
@@ -299,11 +302,14 @@ var ChessTree = function(pgn_string) {
     comments: function (comments_string) {
       return comments (comments_string);
     },
+    exportRepertoire: function () {
+      return exportRepertoire ();
+    },
     exportPGN: function () {
       return exportPGN ();
     },
-    importPGN: function (repertoire_string) {
-      return importPGN (repertoire_string);
+    importRepertoire: function (repertoire_string) {
+      return importRepertoire (repertoire_string);
     },
     movesString: function () {
       return movesString ();

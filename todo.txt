@@ -12,6 +12,10 @@
 
 - if there's no candidate move, then make any move entered the candidate move
 
+- make the moves clickable
+
+- bug: right now the first move is the candidate.
+
 
 September 17, 2011
 1. export the score
