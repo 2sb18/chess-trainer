@@ -11,10 +11,6 @@ var size_of_board = 0.95;
 var shift_key_down = false;
 var ctrl_key_down = false;
 
-//var pgn = '1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8  10. d4 Nbd7 11. c4 c6 12. cxb5 axb5 13. Nc3 Bb7 14. Bg5 b4 15. Nb1 h6 16. Bh4 c5 17. dxe5 Nxe4 18. Bxe7 Qxe7 19. exd6 Qf6 20. Nbd2 Nxd6 21. Nc4 Nxc4 22. Bxc4 Nb6 23. Ne5 Rae8 24. Bxf7+ Rxf7 25. Nxf7 Rxe1+ 26. Qxe1 Kxf7 27. Qe3 Qg5 28. Qxg5 hxg5 29. b3 Ke6 30. a3 Kd6 31. axb4 cxb4 32. Ra5 Nd5 33. f3 Bc8 34. Kf2 Bf5 35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5 40. Rd6 Kc5 41. Ra6 Nf2 42. g4 Bd3 43. Re6';
-//var pgn = '1. e4 e5';
-//var pgn = 'd4 d5 [ e5 dxe5 [ Nc3 ] ; f5 ] f4';
-//var pgn = '1. d4 d5 ( 1... e5 )';
 var pgn = '';
 
 $('body').append("<input type='text' id='move_text'></input>");
@@ -27,11 +23,17 @@ comments.css("resize", "none");
 $('body').append("<button id='save_comments' type='button'>save comments</button>");
 var save_comments = $('#save_comments');
 
+$('body').append("<button id='import_button' type='button'>import</button>");
+var import_button = $('#import_button');
+
 $('body').append("<button id='export_button' type='button'>export</button>");
 var export_button = $('#export_button');
 
 $('body').append("<p id='moves'></p>");
 var moves = $('#moves');
+
+$('body').append("<select id='mode_selector'><option value='editing'>editing</option><option value='training'>training</option></select>");
+var mode_selector = $('#mode_selector');
 
 var tree = new ChessTree(pgn);
 var board = new ChessBoard(move_function, move_back_function);
@@ -124,10 +126,14 @@ function resize_chess_trainer() {
   comments.offset({top:info.top + 50, left: info.left + info.length + 10}).width(300).height(300);
   save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
   export_button.offset({top: info.top + 360, left: info.left + info.length + 250});
+  import_button.offset({top: info.top + 360, left: info.left + info.length + 180});
   moves.offset({top: info.top + 400, left: info.left + info.length + 10}).width(300). height(600);
+  mode_selector.offset({top: info.top, left: info.left + info.length + 230}).width(80);
   
   board.resize_and_move_board(info);  // this has to come last for some reason
 }
+
+
 
 function import_repertoire (repertoire_string) {
   tree.importPGN (repertoire_string);
@@ -145,6 +151,10 @@ save_comments.click (function (e) {
 
 export_button.click (function (e) {
   comments.val(tree.exportPGN());
+});
+
+import_button.click (function (e) {
+  import_repertoire (comments.val());
 });
 
 // if we type anything in the comments box, enable button
@@ -182,12 +192,6 @@ $(document).keypress (function (e) {
   } else if (e.keyCode === 17) {
     ctrl_key_down = false;
   }
-}).ready (function (e) {
-  $.ajax({url: 'repertoire.txt',
-          dataType: 'text',
-          success: function (data) {
-            import_repertoire (data)
-          }});
 });
 
 $(window).resize(resize_chess_trainer);

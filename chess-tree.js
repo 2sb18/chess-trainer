@@ -9,6 +9,7 @@ var ChessTree = function(pgn_string) {
     this.childNodes = [];
     this.candidate = candidate || false;  // candidate is true or false
     this.comments = "";
+    this.score    = 0;      // score will be between 0 and 1
   }
 
   var engine;
@@ -17,7 +18,9 @@ var ChessTree = function(pgn_string) {
 	importPGN(pgn_string);
 
   // sets the currentNode, headNode, and engine
-  function importPGN (pgn_string) {
+  // status_function should have one parameter, a text input
+  // we use this to tell the chess-trainer how far the import has come.
+  function importPGN ( pgn_string ) {
   
     engine = new Chess();
     headNode = new ChessNode(undefined);
@@ -30,12 +33,12 @@ var ChessTree = function(pgn_string) {
     
     var position = 0;    // position in string
 		var next_space;
-		
-		// this gets called for every new [
+    
+    // this gets called for every new [
 		// everything gets added onto the node
 		function pgn_string_to_node (node) {
 			while ( 1 ) {
-				// look for the next space
+        // look for the next space
 				next_space = pgn_string.indexOf(" ", position);
 				if (next_space === -1) {
 					next_space = pgn_string.length;
@@ -67,13 +70,15 @@ var ChessTree = function(pgn_string) {
 					return;
 				} else if (token === "{") {
           // look for " }"
-          var start_of_comment = next_space + 1;
-          var end_of_comment = pgn_string.indexOf(" }", next_space);
-          if (end_of_comment === -1) {
-            throw "can't find the end of the comment";
+          var start_of_meta_data = next_space + 1;
+          var end_of_meta_data = pgn_string.indexOf(" }", next_space);
+          if (end_of_meta_data === -1) {
+            throw "can't find the end of the meta data";
           }
-          currentNode.comments = pgn_string.slice(start_of_comment, end_of_comment);
-          next_space = end_of_comment + 2;
+          var meta_data = pgn_string.slice(start_of_meta_data, end_of_meta_data).split("%");
+          currentNode.comments = meta_data[0] || "";
+          currentNode.score = meta_data[1] || 0;
+          next_space = end_of_meta_data + 2;
         } else {
 					// okay, now we see if it's a real move
 					var the_move = moveTo(token);
@@ -104,13 +109,13 @@ var ChessTree = function(pgn_string) {
       if (node.move !== undefined) {
         result.push(node.move.san);
       }
-      if (node.comments !== "") {
-        result.push("{");
-        // escape the } with \
-        var comments = node.comments.replace(/}/g, '\\}');
-        result.push(comments);
-        result.push("}");
-      }
+      result.push("{");
+      // get rid of }
+      var comments = node.comments.replace(/}/g, '');
+      // get rid of %
+      comments = comments.replace(/%/g, '');
+      result.push(comments + "%" + node.score);
+      result.push("}");
     }
 		
 		function node_to_pgn_array (node) {

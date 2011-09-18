@@ -9,3 +9,9 @@
 - show move just played.
 
 - save candidate moves and score
+
+
+September 17, 2011
+1. export the score
+2. import the score
+3. add a training mode to the interface
