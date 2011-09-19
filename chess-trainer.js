@@ -35,6 +35,9 @@ var export_pgn_button = $('#export_pgn_button');
 $('body').append("<p id='moves'></p>");
 var moves = $('#moves');
 
+$('body').append("<select id='orientation'><option value='white'>white</option><option value='black'>black</option></select>");
+var orientation = $('#orientation');
+
 $('body').append("<select id='mode_selector'><option value='editing'>editing</option><option value='training'>training</option></select>");
 var mode_selector = $('#mode_selector');
 
@@ -42,7 +45,7 @@ $('body').append("<p id='score_text'></p>");
 var score_text = $('#score_text');
 
 var tree = new ChessTree(pgn);
-var board = new ChessBoard(move_function, move_back_function);
+var board = new ChessBoard(move_function, move_back_function, 'white');
 
 resize_chess_trainer();
 
@@ -130,8 +133,8 @@ function resize_chess_trainer() {
   // comment box and save button
   // comments is somehow changing the canvas
   move_text.offset({top: info.top, left: info.left + info.length + 10}).width(100).height(20);
+  orientation.offset({top: info.top, left: info.left + info.length + 130}).width(80);
   mode_selector.offset({top: info.top, left: info.left + info.length + 230}).width(80);
-  
   comments.offset({top:info.top + 50, left: info.left + info.length + 10}).width(300).height(300);
   save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
   import_button.offset({top: info.top + 360, left: info.left + info.length + 180});
@@ -169,6 +172,12 @@ export_pgn_button.click (function (e) {
 
 import_button.click (function (e) {
   importRepertoire (comments.val());
+});
+
+orientation.change (function (e) {
+  board.set_orientation(orientation.val());
+  console.log(orientation.val());
+  sync_board();
 });
 
 // if we type anything in the comments box, enable button

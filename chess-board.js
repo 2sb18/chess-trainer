@@ -4,7 +4,7 @@
 // and it returns null if the move is not allowed and something like
 // { color: 'w', from: 'g2', to: 'g3', flags: 'n', piece: 'p', san: 'g3' } if it is. 
 
-var ChessBoard = function(move_function, move_back_function) {
+var ChessBoard = function(move_function, move_back_function, orientation) {
 
   //configuration
   var dark_color = 'brown';
@@ -66,8 +66,13 @@ var ChessBoard = function(move_function, move_back_function) {
   // example input is square = 'a4'
   function get_position_and_size_from_square (square) {
     var result = {};
-    result.left = dimensions.board_left + letters.indexOf(square.charAt(0)) * dimensions.square_width;
-    result.top  = dimensions.board_top + (8 - Number(square.charAt(1))) * dimensions.square_width;
+    if (orientation === 'white') {
+      result.left = dimensions.board_left + letters.indexOf(square.charAt(0)) * dimensions.square_width;
+      result.top  = dimensions.board_top + (8 - Number(square.charAt(1))) * dimensions.square_width;
+    } else { // orientation = black
+      result.left = dimensions.board_left + (7 - letters.indexOf(square.charAt(0))) * dimensions.square_width;
+      result.top  = dimensions.board_top + (Number(square.charAt(1)) - 1) * dimensions.square_width;
+    }
     result.width = dimensions.square_width;
     result.height = dimensions.square_width;
     return result;
@@ -79,6 +84,10 @@ var ChessBoard = function(move_function, move_back_function) {
     var rank = 8 - Math.floor((y - dimensions.board_top) / dimensions.square_width);
     if (file < 0 || file > 7 || rank < 1 || rank > 8) {
       return undefined;
+    }
+    if (orientation === 'black') {
+      file = 7 - file;
+      rank = 8 - rank;
     }
     return letters[file] + rank;
   }
@@ -130,6 +139,14 @@ var ChessBoard = function(move_function, move_back_function) {
       $('.piece').remove();
     } else if ("string" === typeof square) {
       $('.piece#' + square).remove();
+    }
+  }
+  
+  function set_orientation (orient) {
+    if (orient === 'white' || orient === 'black' ) {
+      orientation = orient;
+    } else {
+      throw "orientation has to be black or white!";
     }
   }
   
@@ -246,6 +263,9 @@ var ChessBoard = function(move_function, move_back_function) {
     },
     update_move: function (just_moved) {
       return update_move (just_moved);
+    }, 
+    set_orientation: function (orientation) {
+      return set_orientation (orientation);
     }
   };
   
