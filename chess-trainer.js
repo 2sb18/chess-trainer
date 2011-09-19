@@ -157,10 +157,12 @@ save_comments.click (function (e) {
 
 export_button.click (function (e) {
   comments.val(tree.exportRepertoire());
+  comments.select();
 });
 
 export_pgn_button.click (function (e) {
   comments.val(tree.exportPGN());
+  comments.select();
 });
 
 import_button.click (function (e) {
