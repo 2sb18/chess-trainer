@@ -13,6 +13,8 @@ var ctrl_key_down = false;
 
 var pgn = '';
 
+var mode = 'editing';
+
 $('body').append("<input type='text' id='move_text'></input>");
 var move_text = $('#move_text');
 
@@ -35,7 +37,7 @@ var export_pgn_button = $('#export_pgn_button');
 $('body').append("<p id='moves'></p>");
 var moves = $('#moves');
 
-$('body').append("<select id='orientation'><option value='white'>white</option><option value='black'>black</option></select>");
+$('body').append("<select id='orientation'><option value='normal'>normal</option><option value='flipped'>flipped</option></select>");
 var orientation = $('#orientation');
 
 $('body').append("<select id='mode_selector'><option value='editing'>editing</option><option value='training'>training</option></select>");
@@ -44,8 +46,11 @@ var mode_selector = $('#mode_selector');
 $('body').append("<p id='score_text'></p>");
 var score_text = $('#score_text');
 
+$('body').append("<p id='instructions'>find the correct move for black</p>");
+var instructions = $('#instructions');
+
 var tree = new ChessTree(pgn);
-var board = new ChessBoard(move_function, move_back_function, 'white');
+var board = new ChessBoard(move_function, move_back_function, 'normal');
 
 resize_chess_trainer();
 
@@ -53,7 +58,7 @@ check_move_and_sync_board(undefined);
 
 resize_chess_trainer();     // !!!! don't know why I have to do this twice
 
-
+// called by check_move_and_sync_board() and by the import button
 function sync_board() {
   // put the pieces in the right spots
   // pieces is an array of pieces on the board
@@ -132,6 +137,7 @@ function resize_chess_trainer() {
   move_text.offset({top: info.top, left: info.left + info.length + 10}).width(100).height(20);
   orientation.offset({top: info.top, left: info.left + info.length + 130}).width(80);
   mode_selector.offset({top: info.top, left: info.left + info.length + 230}).width(80);
+  instructions.offset({top: info.top + 23, left: info.left + info.length + 20});
   comments.offset({top:info.top + 50, left: info.left + info.length + 10}).width(300).height(300);
   save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
   import_button.offset({top: info.top + 360, left: info.left + info.length + 180});
@@ -168,8 +174,11 @@ import_button.click (function (e) {
 
 orientation.change (function (e) {
   board.set_orientation(orientation.val());
-  console.log(orientation.val());
   resize_chess_trainer();
+});
+
+mode_selector.change (function (e) {
+  mode = mode_selector.val();
 });
 
 // if we type anything in the comments box, enable button
