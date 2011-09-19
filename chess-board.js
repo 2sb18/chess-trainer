@@ -62,17 +62,25 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
       whose_move = 'b';
     }
   }
-
-  // example input is square = 'a4'
-  function get_position_and_size_from_square (square) {
+  
+  // with respect to board
+  function get_position_from_square (square) {
     var result = {};
     if (orientation === 'white') {
-      result.left = dimensions.board_left + letters.indexOf(square.charAt(0)) * dimensions.square_width;
-      result.top  = dimensions.board_top + (8 - Number(square.charAt(1))) * dimensions.square_width;
+      result.left = letters.indexOf(square.charAt(0)) * dimensions.square_width;
+      result.top  = (8 - Number(square.charAt(1))) * dimensions.square_width;
     } else { // orientation = black
-      result.left = dimensions.board_left + (7 - letters.indexOf(square.charAt(0))) * dimensions.square_width;
-      result.top  = dimensions.board_top + (Number(square.charAt(1)) - 1) * dimensions.square_width;
+      result.left = (7 - letters.indexOf(square.charAt(0))) * dimensions.square_width;
+      result.top  = (Number(square.charAt(1)) - 1) * dimensions.square_width;
     }
+    return result;
+  }
+  
+  // with respect to document
+  function get_position_and_size_from_square (square) {
+    var result = get_position_from_square (square);
+    result.left += dimensions.board_left;
+    result.top  += dimensions.board_top;
     result.width = dimensions.square_width;
     result.height = dimensions.square_width;
     return result;
@@ -87,7 +95,7 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     }
     if (orientation === 'black') {
       file = 7 - file;
-      rank = 8 - rank;
+      rank = 9 - rank;
     }
     return letters[file] + rank;
   }
@@ -158,12 +166,12 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
   
     // this is with respect to the board
     function get_center_of_square (square) {
-      var result = {};
-      result.top = (8 - Number(square.charAt(1))) * dimensions.square_width + dimensions.square_width/2;
-      result.left = letters.indexOf(square.charAt(0)) * dimensions.square_width + dimensions.square_width/2;
+      var result = get_position_from_square (square);
+      result.top += dimensions.square_width/2;
+      result.left += dimensions.square_width/2;
       return result;
     }
-  
+
     // get rid of arrows already on screen
     // setting the width of a canvas erases everything on it
     var canvas_element = $('canvas#arrow_canvas').get(0);

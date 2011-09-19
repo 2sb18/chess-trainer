@@ -85,9 +85,6 @@ function check_move_and_sync_board (move) {
   if (move === null) {  // move was not possible, so do nothing
     return;
   }
-  
-
-  
   if (move === undefined) { // this is the first move, so background color should be white
     $('body').css('background-color', white_to_move_color);
     board.update_move ('b');
@@ -146,16 +143,6 @@ function resize_chess_trainer() {
   board.resize_and_move_board(info);  // this has to come last for some reason
 }
 
-
-
-function importRepertoire (repertoire_string) {
-  tree.importRepertoire (repertoire_string);
-  $('body').css('background-color', white_to_move_color);
-  board.update_move ('b');
-  sync_board();
-}
-  
-
 save_comments.click (function (e) {
   tree.comments(comments.val());
   save_comments.attr("disabled", "true");
@@ -171,13 +158,18 @@ export_pgn_button.click (function (e) {
 });
 
 import_button.click (function (e) {
-  importRepertoire (comments.val());
+  if (confirm("Are you sure you want to import? You'll overwrite any existing data.")) {
+    tree.importRepertoire (comments.val());
+    $('body').css('background-color', white_to_move_color);
+    board.update_move ('b');
+    sync_board();
+  }
 });
 
 orientation.change (function (e) {
   board.set_orientation(orientation.val());
   console.log(orientation.val());
-  sync_board();
+  resize_chess_trainer();
 });
 
 // if we type anything in the comments box, enable button
