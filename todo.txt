@@ -17,7 +17,45 @@
 - bug: right now the first move is the candidate.
 
 
-September 17, 2011
-1. export the score
-2. import the score
-3. add a training mode to the interface
+
+
+
+when we enter training mode
+- DONE: chess tree remembers the current node as the trainFromNode.
+- DONE:the side that the trainer makes moves for is determined by the orientation of the board
+	- DONE: if the board is normal, trainer makes moves for black
+	- DONE: if the board is flipped, trainer makes moves for white
+
+- DONE: don't show arrows when in training mode
+
+- if it's the trainer's turn
+	is there a move to make?
+	yes
+        	DONE: calculate what move to make
+		DONE: make  that move with animation
+		DONE: move on to next turn
+	no
+		maybe wait a second and flash the background green
+		go back to trainFromNode.
+
+- if it's the trainee's turn
+	DONE: wait for trainee to make a move
+	evaluate move, is it correct?
+	if yes
+		update score
+		DONE: make the move
+	if no
+		is the third time messing up?
+		if yes
+			flash background red
+			update score to zero
+			show correct move
+			go back to the trainFromNode.
+		if no
+			flash background red
+			update score
+
+
+when we enter editing mode
+		
+

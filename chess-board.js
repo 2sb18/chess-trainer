@@ -29,6 +29,8 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
   var board;
   var whose_move = 'w';
   
+  var arrows_showing = true;
+  
   var stored_arrows = [];
   
   // body is a jQuery object containing the body.
@@ -158,6 +160,17 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     }
   }
   
+  // slide a piece from
+  function slide_piece (to_and_from, callback_function) {
+    // get the piece at the from location
+    var piece = $('.piece#' + to_and_from.from);
+    var slide_to = get_position_and_size_from_square(to_and_from.to);
+    if ( piece === undefined ) {
+      throw "trying to slide a piece that doesn't exist";
+    }
+    piece.animate({top:slide_to.top, left: slide_to.left}, 100, "linear", callback_function);
+  }
+
   // arrows is an array of arrows
   // an arrow consists of an object, {from, to, candidate}
   function draw_arrows (arrows) {
@@ -177,6 +190,10 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     var canvas_element = $('canvas#arrow_canvas').get(0);
     canvas_element.width--;
     canvas_element.width++;
+    
+    if (arrows_showing === false) {
+      return;
+    }
 
     canvas_context.lineWidth = Math.round(dimensions.square_width * thickness_of_arrow);
     canvas_context.globalAlpha = arrow_transparency;
@@ -234,6 +251,10 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
       deselect_square();
     }
   }
+  
+  function arrows_active (true_or_false) {
+    arrows_showing = true_or_false;
+  }
 
   $(document).click(function (e) {
     board_pushed(get_square_from_position (e.pageX, e.pageY));
@@ -274,6 +295,12 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     }, 
     set_orientation: function (orientation) {
       return set_orientation (orientation);
+    },
+    arrows_active: function (true_or_false) {
+      return arrows_active (true_or_false);
+    },
+    slide_piece: function (to_and_from, callback_function) {
+      return slide_piece (to_and_from, callback_function);
     }
   };
   

@@ -2,6 +2,9 @@
 
 var ChessTree = function(pgn_string) {
 
+  var NEW_NODE_SCORE     = 5;   // the higher this is, the less new nodes will be introduced
+  
+
   // the first node has a parentNode = 'undefined'
   var ChessNode = function (parentNode, move, candidate) {
     this.move = move;     // this is the chess.js definition of a move. It has lots of good stuff
@@ -15,6 +18,7 @@ var ChessTree = function(pgn_string) {
   var engine;
   var currentNode;
   var headNode;
+  var trainingNode;
 	importRepertoire(pgn_string);
 
   // sets the currentNode, headNode, and engine
@@ -275,7 +279,13 @@ var ChessTree = function(pgn_string) {
     }
   }
   
-  // getter/setter
+  function movesString () {
+    return engine.pgn();
+  }
+  
+  // training stuff
+  
+   // getter/setter
   function score (score_value) {
     if (score_value === undefined) {
       return currentNode.score;
@@ -284,8 +294,59 @@ var ChessTree = function(pgn_string) {
     }
   }
   
-  function movesString () {
-    return engine.pgn();
+  function setTrainingNode () {
+    trainingNode = currentNode;
+  }
+  
+  // returns 'w' or 'b'
+  function turn () {
+    return engine.turn();
+  }
+  
+  // returns null if there's no next move
+  function calculateNextMove () {
+    // return null if there's no next move
+    if (currentNode.childNodes.length === 0) {
+      return null;
+    }
+    var best_weighted_score;
+    var childNodeFrontrunner = undefined;
+    // calculate the score for each of the childNodes
+    for (var i in currentNode.childNodes) {
+      var childNode = currentNode.childNodes[i];
+      var current_weighted_score = (childNode.score === 0) ? NEW_NODE_SCORE : childNode.score;
+      current_weighted_score *= Math.random();
+      
+      // we want to choose the node that is less memorized
+      if (childNodeFrontrunner === undefined || current_weighted_score < best_weighted_score) {
+        childNodeFrontrunner = childNode;
+        best_weighted_score = current_weighted_score;
+      }
+    }
+    
+    var move = engine.move(childNodeFrontrunner.move);
+    if (move === null) {
+      throw "can't find the childNode that's suppose to be here";
+    }
+    currentNode = childNodeFrontrunner;
+    return move;
+  }
+  
+  function tryMove (move) {
+  
+    var move = engine.move(move);
+    if (move === null) {
+      return null;  // move isn't even legal
+    }
+    // look for move in the childNodes
+    for (var i in currentNode.childNodes) {
+      if (currentNode.childNodes[i].move.san === move.san) {
+        currentNode = currentNode.childNodes[i];
+        return move;
+      }
+    }
+    engine.undo();  // move is not a child, so undo it.
+    return null;
   }
   
   // PUBLIC API
@@ -311,9 +372,6 @@ var ChessTree = function(pgn_string) {
     comments: function (comments_string) {
       return comments (comments_string);
     },
-    score: function (score_value) {
-      return score ();
-    },
     exportRepertoire: function () {
       return exportRepertoire ();
     },
@@ -325,6 +383,22 @@ var ChessTree = function(pgn_string) {
     },
     movesString: function () {
       return movesString ();
+    },
+    // training mode stuff
+    turn: function () {
+      return turn ();
+    },
+    score: function (score_value) {
+      return score ();
+    },
+    setTrainingNode: function () {
+      return setTrainingNode ();
+    },
+    calculateNextMove: function () {
+      return calculateNextMove ();
+    },
+    tryMove: function (move) {
+      return tryMove (move);
     }
   };
 };

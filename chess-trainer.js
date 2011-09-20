@@ -46,9 +46,6 @@ var mode_selector = $('#mode_selector');
 $('body').append("<p id='score_text'></p>");
 var score_text = $('#score_text');
 
-$('body').append("<p id='instructions'>find the correct move for black</p>");
-var instructions = $('#instructions');
-
 var tree = new ChessTree(pgn);
 var board = new ChessBoard(move_function, move_back_function, 'normal');
 
@@ -72,7 +69,6 @@ function sync_board() {
       board.add_piece(pieces[i].color + pieces[i].type, i);
     }
   }
-  // put the arrows in the right spots
   board.draw_arrows(tree.getNextMoves());
   
   // update the comments box and disable saving, since nothing has changed
@@ -104,7 +100,13 @@ function check_move_and_sync_board (move) {
 }
 
 // move is just 'from' and 'to'
+// this gets called by the chess-board if a new move is tried.
 function move_function (move) {
+
+  if (mode === 'training') {
+    train(move);
+    return;
+  }
 
   // these functions send back a full move object if the move happened.
   // we use that to determine who's turn it is.
@@ -137,7 +139,6 @@ function resize_chess_trainer() {
   move_text.offset({top: info.top, left: info.left + info.length + 10}).width(100).height(20);
   orientation.offset({top: info.top, left: info.left + info.length + 130}).width(80);
   mode_selector.offset({top: info.top, left: info.left + info.length + 230}).width(80);
-  instructions.offset({top: info.top + 23, left: info.left + info.length + 20});
   comments.offset({top:info.top + 50, left: info.left + info.length + 10}).width(300).height(300);
   save_comments.offset({top: info.top + 360, left: info.left + info.length + 20});
   import_button.offset({top: info.top + 360, left: info.left + info.length + 180});
@@ -147,6 +148,29 @@ function resize_chess_trainer() {
   moves.offset({top: info.top + 420, left: info.left + info.length + 10}).width(300). height(600);
   
   board.resize_and_move_board(info);  // this has to come last for some reason
+}
+
+function train(move) {
+
+  var next_move;
+  
+  // first let's figure out whose move it is
+  if ( (orientation.val() === 'normal' && tree.turn() === 'w') || (orientation.val() === 'flipped' && tree.turn() === 'b') ) {
+    // trainee's turn
+    next_move = tree.tryMove(move);
+    if (next_move !== null) {
+      check_move_and_sync_board(next_move);
+      sync_board();
+      setTimeout(train, 250);
+    }
+  } else {
+    // trainer's turn
+    // make move
+    next_move = tree.calculateNextMove();
+    board.slide_piece(next_move,  function () {
+                                    check_move_and_sync_board(next_move);
+                                  });
+  }
 }
 
 save_comments.click (function (e) {
@@ -181,6 +205,16 @@ orientation.change (function (e) {
 
 mode_selector.change (function (e) {
   mode = mode_selector.val();
+  if (mode === "training") {
+    tree.setTrainingNode();
+    board.arrows_active(false);
+    sync_board();
+    train();
+  } else if (mode === 'editing') {
+    board.arrows_active(true);
+    sync_board();
+  }
+
 });
 
 // if we type anything in the comments box, enable button
