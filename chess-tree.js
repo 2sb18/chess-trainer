@@ -2,7 +2,7 @@
 
 var ChessTree = function(pgn_string) {
 
-  var NEW_NODE_SCORE     = 5;   // the higher this is, the less new nodes will be introduced
+  var NEW_NODE_SCORE     = 1;   // the higher this is, the less new nodes will be introduced
   
 
   // the first node has a parentNode = 'undefined'
@@ -81,7 +81,7 @@ var ChessTree = function(pgn_string) {
           }
           var meta_data = pgn_string.slice(start_of_meta_data, end_of_meta_data).split("%");
           currentNode.comments = meta_data[0] || "";
-          currentNode.score = meta_data[1] || 0;
+          currentNode.score = Number(meta_data[1]) || 0;
           next_space = end_of_meta_data + 2;
         } else {
 					// okay, now we see if it's a real move
@@ -332,8 +332,8 @@ var ChessTree = function(pgn_string) {
     return move;
   }
   
+	// and update score!
   function tryMove (move) {
-  
     var move = engine.move(move);
     if (move === null) {
       return null;  // move isn't even legal
@@ -341,11 +341,15 @@ var ChessTree = function(pgn_string) {
     // look for move in the childNodes
     for (var i in currentNode.childNodes) {
       if (currentNode.childNodes[i].move.san === move.san) {
+				currentNode.score = (currentNode.score + 1) / 2;				// update the score
+				currentNode.score = Math.round(currentNode.score*100)/100;
         currentNode = currentNode.childNodes[i];
         return move;
       }
     }
     engine.undo();  // move is not a child, so undo it.
+		currentNode.score /= 2;
+		currentNode.score = Math.round(currentNode.score*100)/100;
     return null;
   }
   

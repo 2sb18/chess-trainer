@@ -48,12 +48,12 @@ when we enter training mode
 		is the third time messing up?
 		if yes
 			flash background red
-			update score to zero
+			DONE: update score to zero
 			show correct move
 			go back to the trainFromNode.
 		if no
 			flash background red
-			update score
+			DONE: update score
 
 
 when we enter editing mode
