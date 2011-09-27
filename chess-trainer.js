@@ -1,12 +1,18 @@
 // chess-trainer glues together the chess.js and chess-board.js
 
-var move_back_button = 't';
-var move_back_button_charCode = 116;   // t
+var MOVE_BACK_BUTTON = 't';
+var MOVE_BACK_BUTTON_CHARCODE = 116;   // t
 
-var black_to_move_color = 'rgb(220,220,220)';
-var white_to_move_color = 'rgb(242,242,242)';
+var BLACK_TO_MOVE_COLOR = 'rgb(220,220,220)';
+var WHITE_TO_MOVE_COLOR = 'rgb(242,242,242)';
 
-var size_of_board = 0.95;
+var COLOR_WRONG = 'rgb(255, 135, 135)';
+var COLOR_RIGHT = 'rgb(103, 224, 90)';
+
+var FLASH_TIME = 100;
+var WAIT_TIME  = 1000;
+
+var SIZE_OF_BOARD = 0.95;
 
 var shift_key_down = false;
 var ctrl_key_down = false;
@@ -14,6 +20,8 @@ var ctrl_key_down = false;
 var pgn = '';
 
 var mode = 'editing';
+
+var wrong_moves = 0;
 
 $('body').append("<input type='text' id='move_text'></input>");
 var move_text = $('#move_text');
@@ -51,57 +59,39 @@ var board = new ChessBoard(move_function, move_back_function, 'normal');
 
 resize_chess_trainer();
 
-check_move_and_sync_board(undefined);
+sync_board();
 
 resize_chess_trainer();     // !!!! don't know why I have to do this twice
 
-// called by check_move_and_sync_board() and by the import button
 function sync_board() {
-  // put the pieces in the right spots
-  // pieces is an array of pieces on the board
-  // there's an element for every square on the board
-  // if an element is null, no piece is on that square.
+	board.remove_piece(); 	// remove all the pieces
   var pieces = tree.getPieces();
   for (var i in pieces) {
-    if (pieces[i] === null) {
-      board.remove_piece(i);
-    } else {
+    if (pieces[i] !== null) {
       board.add_piece(pieces[i].color + pieces[i].type, i);
     }
   }
   board.draw_arrows(tree.getNextMoves());
-  
+
   // update the comments box and disable saving, since nothing has changed
   comments.val(tree.comments());
   save_comments.attr("disabled", "true");
   save_comments.css("background-color", "");
   score_text.html("score: " + Math.round(tree.score()*100)/100);
   moves.html(tree.movesString());
-}  
-  
-// syncs the board to the engine
-// the engine tells it where the pieces are
-// the tree tells it where the arrows are.
-function check_move_and_sync_board (move) {
-  if (move === null) {  // move was not possible, so do nothing
-    return;
-  }
-  if (move === undefined) { // this is the first move, so background color should be white
-    $('body').css('background-color', white_to_move_color);
-    board.update_move ('b');
-  } else {
-    $('body').css("background-color", move.color === "w" ? black_to_move_color : white_to_move_color);
-    board.update_move (move.color);
-  }
-  sync_board();
-  
-  // move is happening, so clear the text in move_text
+  $('body').css("background-color", tree.turn() === "w" ? WHITE_TO_MOVE_COLOR : BLACK_TO_MOVE_COLOR);
+  board.update_turn(tree.turn());
+	// move is happening, so clear the text in move_text
   move_text.val("");
 }
 
 // move is just 'from' and 'to'
 // this gets called by the chess-board if a new move is tried.
 function move_function (move) {
+
+  if (move.from === move.to) {
+    return;
+  }
 
   if (mode === 'training') {
     train(move);
@@ -111,26 +101,27 @@ function move_function (move) {
   // these functions send back a full move object if the move happened.
   // we use that to determine who's turn it is.
   if (ctrl_key_down) {
-    move = tree.deleteBranch(move);
+    tree.deleteBranch(move);
     ctrl_key_down = false;    // with tree.deleteBranch(), an alert pops up that makes 
                               // chess-trainer.js lose focus.
                               // !!! may get rid of this at some point
   } else if (shift_key_down) {
-    move = tree.toggleCandidate(move);
+    tree.makeCandidate(move);
   } else {
-    move = tree.moveTo(move);
+    tree.moveTo(move);
   }
-  check_move_and_sync_board (move);
+  sync_board();
 }
 
 function move_back_function () {
-  check_move_and_sync_board(tree.moveBack());
+	tree.moveBack();
+	sync_board();
 }
 
 function resize_chess_trainer() {
   var info = {};
   var smaller_dimension = $(window).height() > $(window).width() ? $(window).width() : $(window).height();
-  info.length = Math.round(smaller_dimension * size_of_board);
+  info.length = Math.round(smaller_dimension * SIZE_OF_BOARD);
   info.top    = Math.round($(window).height() / 2 - info.length / 2);
   info.left   = Math.round($(window).width() / 2 - info.length / 2);
 
@@ -150,27 +141,72 @@ function resize_chess_trainer() {
   board.resize_and_move_board(info);  // this has to come last for some reason
 }
 
+function reset_training_board() {
+  tree.gotoTrainingNode();
+  sync_board();
+}
+
+function wrong_move() {
+	wrong_moves++;
+	if(wrong_moves >= 3) {
+		wrong_moves = 0;
+		// show correct move and reset
+		$('body').css('background-color', COLOR_WRONG);
+		var correct_move = (tree.getNextMoves ())[0];
+		board.slide_piece(correct_move, function () {
+																			setTimeout(reset_training_board, WAIT_TIME);
+																		});
+	} else {
+		$('body').css('background-color', COLOR_WRONG);
+		setTimeout(sync_board, FLASH_TIME);
+	}
+}
+
+function right_move() {
+	wrong_moves = 0;
+	sync_board();
+	setTimeout(train, 250);
+}
+
+// this is for the trainer to make a move
+function make_move() {
+	next_move = tree.calculateNextMove();
+	if (next_move === null) {
+		$('body').css('background-color', COLOR_RIGHT);
+		setTimeout(reset_training_board, WAIT_TIME);
+		return;
+	}
+	board.slide_piece(next_move,  function () {
+																	sync_board();
+																	if(tree.getNextMoves().length === 0) {
+																		$('body').css('background-color', COLOR_RIGHT);
+																		setTimeout(reset_training_board, WAIT_TIME);
+																	}
+																});
+}
+	
+
 function train(move) {
 
   var next_move;
+  var background_color;
   
   // first let's figure out whose move it is
   if ( (orientation.val() === 'normal' && tree.turn() === 'w') || (orientation.val() === 'flipped' && tree.turn() === 'b') ) {
     // trainee's turn
+    if (move === undefined) {
+      return;
+    }
     next_move = tree.tryMove(move);
     if (next_move !== null) {
-      check_move_and_sync_board(next_move);
-      sync_board();
-      setTimeout(train, 250);
+			right_move();
+    } else {
+			wrong_move();
     }
   } else {
     // trainer's turn
-    // make move
-    next_move = tree.calculateNextMove();
-    board.slide_piece(next_move,  function () {
-                                    check_move_and_sync_board(next_move);
-                                  });
-  }
+    make_move();
+	}
 }
 
 save_comments.click (function (e) {
@@ -192,8 +228,6 @@ export_pgn_button.click (function (e) {
 import_button.click (function (e) {
   if (confirm("Are you sure you want to import? You'll overwrite any existing data.")) {
     tree.importRepertoire (comments.val());
-    $('body').css('background-color', white_to_move_color);
-    board.update_move ('b');
     sync_board();
   }
 });
@@ -205,7 +239,7 @@ orientation.change (function (e) {
 
 mode_selector.change (function (e) {
   mode = mode_selector.val();
-  if (mode === "training") {
+  if (mode === 'training') {
     tree.setTrainingNode();
     board.arrows_active(false);
     sync_board();
@@ -224,11 +258,26 @@ comments.keypress (function (e) {
 });
 
 move_text.keyup (function (e) {
-  if (move_text.val().indexOf(move_back_button) !== -1) {
-    check_move_and_sync_board(tree.moveBack());
+	if(mode === 'editing') {
+		if (move_text.val().indexOf(MOVE_BACK_BUTTON) !== -1) {
+			tree.moveBack();
+			sync_board();
+		} else {
+			var move = tree.moveTo(move_text.val());
+			if(move !== null) {
+				sync_board();
+			}
+		}
 	} else {
-    check_move_and_sync_board (tree.moveTo(move_text.val()));
-  }
+		var move = tree.tryMove(move_text.val());
+		if(move === "illegal") {
+			return;
+		} else if(move !== null) {
+			right_move();
+		} else {
+			wrong_move();
+		}
+	}
 });
   
 $(document).keypress (function (e) {
@@ -237,8 +286,8 @@ $(document).keypress (function (e) {
   if ( $(document.activeElement).get(0) !== $('body').get(0) ) {
     return;
   }
-  if (e.charCode === move_back_button_charCode) {
-    check_move_and_sync_board(tree.moveBack());
+  if (e.charCode === MOVE_BACK_BUTTON_CHARCODE) {
+    sync_board(tree.moveBack());
 	}
 }).keydown (function (e) {
   if (e.keyCode === 16) { // shift

@@ -19,6 +19,8 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
   var z_square = -2;
   var z_piece  = 1;
   var z_canvas = 2;
+	
+	var ANIMATION_SPEED = 200;
 
   var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
   
@@ -57,12 +59,8 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     }
   }
   
-  function update_move(just_moved) {
-    if (just_moved === 'b') {
-      whose_move = 'w';
-    } else {
-      whose_move = 'b';
-    }
+  function update_turn(color) {
+    whose_move = color;
   }
   
   // with respect to board
@@ -168,7 +166,8 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     if ( piece === undefined ) {
       throw "trying to slide a piece that doesn't exist";
     }
-    piece.animate({top:slide_to.top, left: slide_to.left}, 100, "linear", callback_function);
+		piece.attr("id", to_and_from.to);
+    piece.animate({top:slide_to.top, left: slide_to.left}, ANIMATION_SPEED, "linear", callback_function);
   }
 
   // arrows is an array of arrows
@@ -198,14 +197,11 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     canvas_context.lineWidth = Math.round(dimensions.square_width * thickness_of_arrow);
     canvas_context.globalAlpha = arrow_transparency;
     
-    
-    //alert("canvas top is " + $('#arrow_canvas').position().top + " and left is " + $('#arrow_canvas').position().left);
-    
-    for (var k in arrows) {
+		for (var k in arrows) {
       var from = get_center_of_square (arrows[k].from);
       var to   = get_center_of_square (arrows[k].to);
       canvas_context.beginPath();
-      canvas_context.strokeStyle = arrows[k].candidate ? candidate_color : non_candidate_color;
+      canvas_context.strokeStyle = (k === "0") ? candidate_color : non_candidate_color;
       canvas_context.moveTo(from.left, from.top);
       canvas_context.lineTo(to.left, to.top);
       // now drawing the head of the arrow
@@ -290,8 +286,8 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     draw_arrows: function (arrows) {
       return draw_arrows (arrows);
     },
-    update_move: function (just_moved) {
-      return update_move (just_moved);
+    update_turn: function (color) {
+      return update_turn (color);
     }, 
     set_orientation: function (orientation) {
       return set_orientation (orientation);

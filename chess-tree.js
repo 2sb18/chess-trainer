@@ -2,15 +2,14 @@
 
 var ChessTree = function(pgn_string) {
 
-  var NEW_NODE_SCORE     = 1;   // the higher this is, the less new nodes will be introduced
+  var NEW_NODE_SCORE     = 0.75;   // the higher this is, the less new nodes will be introduced
   
 
   // the first node has a parentNode = 'undefined'
-  var ChessNode = function (parentNode, move, candidate) {
+  var ChessNode = function (parentNode, move) {
     this.move = move;     // this is the chess.js definition of a move. It has lots of good stuff
     this.parentNode = parentNode;
     this.childNodes = [];
-    this.candidate = candidate || false;  // candidate is true or false
     this.comments = "";
     this.score    = 0;      // score will be between 0 and 1
   }
@@ -172,12 +171,8 @@ var ChessTree = function(pgn_string) {
       }
     }
     // move doesn't exist in tree, so we must create it
-		// if this is the only childNode, make candidate move true
     var newChildNode = new ChessNode(currentNode, move);
     currentNode.childNodes.push(newChildNode);
-		if (currentNode.childNodes.length === 1) {
-			newChildNode.candidate = true;
-		}
     currentNode = newChildNode;
     return move;
   }
@@ -228,7 +223,7 @@ var ChessTree = function(pgn_string) {
   }
   
   //move is a chess.js move
-  function toggleCandidate (move) {
+  function makeCandidate (move) {
     // is the move legitimate?
     move = engine.move(move);
     if (move === null) {
@@ -239,14 +234,20 @@ var ChessTree = function(pgn_string) {
     for (var i in currentNode.childNodes) {
       var child = currentNode.childNodes[i];
       if (child.move.from === move.from && child.move.to === move.to) {
-        child.candidate = child.candidate ? false : true;
-        return {color:move.color === "w" ? "b" : "w"};
+				// we've found the move
+				if (i === "0") {
+					// it's alread the candidate move, do nothing
+					return;
+				}
+				currentNode.childNodes[i] = currentNode.childNodes[0];
+				currentNode.childNodes[0] = child;
+				return;
       }
     }
-    
-    // move wasn't found, so create a new move with candidate set to true
-    currentNode.childNodes.push(new ChessNode(currentNode, move, true));
-		return {color:move.color === "w" ? "b" : "w"};
+    // move wasn't found, so create a new node, and make it the first in the array
+		var candidate = new ChessNode(currentNode, move);
+		currentNode.childNodes.push(currentNode.childNodes[0]);
+		currentNode.childNodes[0] = candidate;
   }
   
   // an array of moves. a move looks like this {from:'a1', to:'e5'}
@@ -254,7 +255,7 @@ var ChessTree = function(pgn_string) {
     var result = [];
     for (var i in currentNode.childNodes) {
       var childNode = currentNode.childNodes[i];
-      result.push({from: childNode.move.from, to: childNode.move.to, candidate: childNode.candidate});
+      result.push({from: childNode.move.from, to: childNode.move.to});
     }
     return result;
   }
@@ -336,23 +337,34 @@ var ChessTree = function(pgn_string) {
   function tryMove (move) {
     var move = engine.move(move);
     if (move === null) {
-      return null;  // move isn't even legal
+      return "illegal";  // move isn't even legal
     }
-    // look for move in the childNodes
-    for (var i in currentNode.childNodes) {
-      if (currentNode.childNodes[i].move.san === move.san) {
-				currentNode.score = (currentNode.score + 1) / 2;				// update the score
-				currentNode.score = Math.round(currentNode.score*100)/100;
-        currentNode = currentNode.childNodes[i];
-        return move;
-      }
-    }
+    // see if the move is the candidate move
+    if (currentNode.childNodes[0].move.san === move.san) {
+			currentNode.score = (currentNode.score + 1) / 2;				// update the score
+			currentNode.score = Math.round(currentNode.score*100)/100;
+			currentNode = currentNode.childNodes[0];
+			return move;
+		}
     engine.undo();  // move is not a child, so undo it.
 		currentNode.score /= 2;
 		currentNode.score = Math.round(currentNode.score*100)/100;
     return null;
   }
   
+  // this function assumes we are past training node
+  function gotoTrainingNode () {
+    while ( 1 ) {
+      if (currentNode === trainingNode) {
+        return;
+      }
+      var back = moveBack();
+      if (back === null) {
+        throw "couldn't find training node";
+      }
+    }
+  }
+    
   // PUBLIC API
   return {
     moveTo: function (move) {
@@ -367,8 +379,8 @@ var ChessTree = function(pgn_string) {
     deleteBranch: function (move) {
       return deleteBranch (move);
     },
-    toggleCandidate: function (move) {
-      return toggleCandidate (move);
+    makeCandidate: function (move) {
+      return makeCandidate (move);
     },
     getPieces: function () {
       return getPieces ();
@@ -403,6 +415,9 @@ var ChessTree = function(pgn_string) {
     },
     tryMove: function (move) {
       return tryMove (move);
+    },
+    gotoTrainingNode: function () {
+      return gotoTrainingNode ();
     }
   };
 };

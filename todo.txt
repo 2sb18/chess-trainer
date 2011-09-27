@@ -8,16 +8,20 @@
 
 - show move just played.
 
-- save candidate moves and score
 
-- if there's no candidate move, then make any move entered the candidate move
 
-- make the moves clickable
-
-- bug: right now the first move is the candidate.
+- make the moves clickable in the move list
 
 
 
+- next: if you mess up a move, have to do the exact same moves over again before you move on.
+
+
+
+- DONE: : right now the first move is the candidate. that's good. Make it so that there is only one candidate, and it's the first move in the array, and that when you select a new candidate, it just switches the position in the array.
+
+- make calculateNextMove move sophisticated. Take into account all paths
+- DONE: be able to type in moves in training mode
 
 
 when we enter training mode
@@ -35,24 +39,24 @@ when we enter training mode
 		DONE: make  that move with animation
 		DONE: move on to next turn
 	no
-		maybe wait a second and flash the background green
-		go back to trainFromNode.
+		DONE: maybe wait a second and flash the background green
+		DONE: go back to trainFromNode.
 
 - if it's the trainee's turn
 	DONE: wait for trainee to make a move
-	evaluate move, is it correct?
+	DONE: evaluate move, is it correct?
 	if yes
-		update score
+		DONE: update score
 		DONE: make the move
 	if no
 		is the third time messing up?
 		if yes
-			flash background red
+			DONE: flash background red
 			DONE: update score to zero
-			show correct move
-			go back to the trainFromNode.
+			DONE: show correct move
+			DONE: go back to the trainFromNode.
 		if no
-			flash background red
+			DONE: flash background red
 			DONE: update score
 
 
