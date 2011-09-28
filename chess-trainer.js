@@ -23,6 +23,8 @@ var mode = 'editing';
 
 var wrong_moves = 0;
 
+var score = 0;
+
 $('body').append("<input type='text' id='move_text'></input>");
 var move_text = $('#move_text');
 
@@ -45,7 +47,7 @@ var export_pgn_button = $('#export_pgn_button');
 $('body').append("<p id='moves'></p>");
 var moves = $('#moves');
 
-$('body').append("<select id='orientation'><option value='normal'>normal</option><option value='flipped'>flipped</option></select>");
+$('body').append("<select id='orientation'><option value='w'>normal</option><option value='b'>flipped</option></select>");
 var orientation = $('#orientation');
 
 $('body').append("<select id='mode_selector'><option value='editing'>editing</option><option value='training'>training</option></select>");
@@ -58,6 +60,8 @@ var tree = new ChessTree(pgn);
 var board = new ChessBoard(move_function, move_back_function, 'normal');
 
 resize_chess_trainer();
+
+board.set_orientation(orientation.val());
 
 sync_board();
 
@@ -77,7 +81,7 @@ function sync_board() {
   comments.val(tree.comments());
   save_comments.attr("disabled", "true");
   save_comments.css("background-color", "");
-  score_text.html("score: " + Math.round(tree.score()*100)/100);
+  score_text.html("nodes: " + score.nodes + "\nscore: " + Math.round(100*score.sum)/100);
   moves.html(tree.movesString());
   $('body').css("background-color", tree.turn() === "w" ? WHITE_TO_MOVE_COLOR : BLACK_TO_MOVE_COLOR);
   board.update_turn(tree.turn());
@@ -136,13 +140,14 @@ function resize_chess_trainer() {
   export_button.offset({top: info.top + 360, left: info.left + info.length + 250});
   score_text.offset({top: info.top + 390, left: info.left + info.length + 20}).width(100);
   export_pgn_button.offset({top: info.top + 390, left: info.left + info.length + 180 });
-  moves.offset({top: info.top + 420, left: info.left + info.length + 10}).width(300). height(600);
+  moves.offset({top: info.top + 450, left: info.left + info.length + 10}).width(300). height(600);
   
   board.resize_and_move_board(info);  // this has to come last for some reason
 }
 
 function reset_training_board() {
   tree.gotoTrainingNode();
+  score = tree.getScore(orientation.val());
   sync_board();
 }
 
@@ -192,7 +197,8 @@ function train(move) {
   var background_color;
   
   // first let's figure out whose move it is
-  if ( (orientation.val() === 'normal' && tree.turn() === 'w') || (orientation.val() === 'flipped' && tree.turn() === 'b') ) {
+  //if ( (orientation.val() === 'w' && tree.turn() === 'w') || (orientation.val() === 'b' && tree.turn() === 'b') ) {
+  if(orientation.val() === tree.turn()) {
     // trainee's turn
     if (move === undefined) {
       return;
@@ -215,6 +221,13 @@ save_comments.click (function (e) {
   save_comments.css("background-color", "");
 });
 
+import_button.click (function (e) {
+  if (confirm("Are you sure you want to import? You'll overwrite any existing data.")) {
+    tree.importRepertoire (comments.val());
+    sync_board();
+  }
+});
+
 export_button.click (function (e) {
   comments.val(tree.exportRepertoire());
   comments.select();
@@ -223,13 +236,6 @@ export_button.click (function (e) {
 export_pgn_button.click (function (e) {
   comments.val(tree.exportPGN());
   comments.select();
-});
-
-import_button.click (function (e) {
-  if (confirm("Are you sure you want to import? You'll overwrite any existing data.")) {
-    tree.importRepertoire (comments.val());
-    sync_board();
-  }
 });
 
 orientation.change (function (e) {

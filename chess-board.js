@@ -66,10 +66,10 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
   // with respect to board
   function get_position_from_square (square) {
     var result = {};
-    if (orientation === 'normal') {
+    if (orientation === 'w') {
       result.left = letters.indexOf(square.charAt(0)) * dimensions.square_width;
       result.top  = (8 - Number(square.charAt(1))) * dimensions.square_width;
-    } else { // orientation = flipped
+    } else { // orientation = b
       result.left = (7 - letters.indexOf(square.charAt(0))) * dimensions.square_width;
       result.top  = (Number(square.charAt(1)) - 1) * dimensions.square_width;
     }
@@ -93,7 +93,7 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
     if (file < 0 || file > 7 || rank < 1 || rank > 8) {
       return undefined;
     }
-    if (orientation === 'flipped') {
+    if (orientation === 'b') {
       file = 7 - file;
       rank = 9 - rank;
     }
@@ -151,10 +151,10 @@ var ChessBoard = function(move_function, move_back_function, orientation) {
   }
   
   function set_orientation (orient) {
-    if (orient === 'normal' || orient === 'flipped' ) {
+    if (orient === 'w' || orient === 'b' ) {
       orientation = orient;
     } else {
-      throw "orientation has to be normal or flipped!";
+      throw "orientation has to be w or b!";
     }
   }
   

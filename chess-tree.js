@@ -26,7 +26,8 @@ var ChessTree = function(pgn_string) {
   function importRepertoire ( pgn_string ) {
   
     engine = new Chess();
-    headNode = new ChessNode(undefined);
+    headNode = new ChessNode(undefined, {color:"b"}); // since this is the first move, it's like
+                                                      // black just moved
 		currentNode = headNode;		// need to use currentNode because moveTo
 															// uses it.
     
@@ -189,12 +190,32 @@ var ChessTree = function(pgn_string) {
   
   // recursive function that allows you to perform a function on the elements of 
   // every node in a branch
-  function searchBranch (headNode, func) {
-    for (var i in headNode.childNodes) {
-      var child = headNode.childNodes[i];
+  function searchBranch (node, func) {
+    for (var i in node.childNodes) {
+      var child = node.childNodes[i];
       searchBranch (child, func);
     }
-    func (headNode);
+    func (node);
+  }
+  
+  function numberOfNodes (headNode) {
+    var number_of_nodes = 0;
+    searchBranch (headNode, function (node) {
+      number_of_nodes++;
+    });
+    return number_of_nodes;
+  }
+  
+  function getScore (trainingColor) {
+    var nodes = 0;
+    var sum = 0;
+    searchBranch (headNode, function (node) {
+                              if (node.move.color != trainingColor) {
+                                nodes++;
+                                sum += node.score;
+                              }
+                            });
+    return {"nodes":nodes, "sum":sum};
   }
       
   // move is an object that requires a from and a to
@@ -205,10 +226,7 @@ var ChessTree = function(pgn_string) {
       if (currentNode.childNodes[i].move.from === move.from && currentNode.childNodes[i].move.to === move.to) {
         // we've found the node to delete
         // let's see how many nodes there are in total that will be deleted
-        var number_of_nodes = 0;
-        searchBranch (currentNode.childNodes[i], function (node) {
-          number_of_nodes++;
-        });
+        var number_of_nodes = numberOfNodes(currentNode.childNodes[i]);
         if (number_of_nodes > 1) {
           if (confirm("You are about to delete " + number_of_nodes + " nodes. Bad ass.")) {
             currentNode.childNodes.splice(i, 1);
@@ -286,15 +304,6 @@ var ChessTree = function(pgn_string) {
   
   // training stuff
   
-   // getter/setter
-  function score (score_value) {
-    if (score_value === undefined) {
-      return currentNode.score;
-    } else {
-      currentNode.score = score_value;
-    }
-  }
-  
   function setTrainingNode () {
     trainingNode = currentNode;
   }
@@ -305,6 +314,9 @@ var ChessTree = function(pgn_string) {
   }
   
   // returns null if there's no next move
+  // lets make calcuating the next move easy. 
+  // lowest number wins
+  // score = random_number * node_score / number_of_nodes in this branch
   function calculateNextMove () {
     // return null if there's no next move
     if (currentNode.childNodes.length === 0) {
@@ -315,8 +327,9 @@ var ChessTree = function(pgn_string) {
     // calculate the score for each of the childNodes
     for (var i in currentNode.childNodes) {
       var childNode = currentNode.childNodes[i];
-      var current_weighted_score = (childNode.score === 0) ? NEW_NODE_SCORE : childNode.score;
+      var current_weighted_score = childNode.score;
       current_weighted_score *= Math.random();
+      current_weighted_score /= Math.sqrt(numberOfNodes(childNode));
       
       // we want to choose the node that is less memorized
       if (childNodeFrontrunner === undefined || current_weighted_score < best_weighted_score) {
@@ -404,9 +417,6 @@ var ChessTree = function(pgn_string) {
     turn: function () {
       return turn ();
     },
-    score: function (score_value) {
-      return score ();
-    },
     setTrainingNode: function () {
       return setTrainingNode ();
     },
@@ -418,6 +428,9 @@ var ChessTree = function(pgn_string) {
     },
     gotoTrainingNode: function () {
       return gotoTrainingNode ();
+    },
+    getScore: function (trainingColor) {
+      return getScore(trainingColor);
     }
   };
 };
