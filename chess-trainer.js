@@ -246,7 +246,7 @@ orientation.change (function (e) {
 mode_selector.change (function (e) {
   mode = mode_selector.val();
   if (mode === 'training') {
-    tree.setTrainingNode();
+    tree.setTrainingNode(orientation.val());
     board.arrows_active(false);
     sync_board();
     train();

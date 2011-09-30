@@ -18,6 +18,7 @@ var ChessTree = function(pgn_string) {
   var currentNode;
   var headNode;
   var trainingNode;
+  var trainingColor;
 	importRepertoire(pgn_string);
 
   // sets the currentNode, headNode, and engine
@@ -304,13 +305,26 @@ var ChessTree = function(pgn_string) {
   
   // training stuff
   
-  function setTrainingNode () {
+  function setTrainingNode (trainingC) {
     trainingNode = currentNode;
+    trainingColor = trainingC;
   }
   
   // returns 'w' or 'b'
   function turn () {
     return engine.turn();
+  }
+  
+  function getWorstChildScore(node) {
+    var worst_score = 100000000;
+    searchBranch(node, function (node) {
+                          if (node.move.color != trainingColor) {
+                            if(node.score < worst_score) {
+                              worst_score = node.score;
+                            }
+                          }
+                       });
+    return worst_score;
   }
   
   // returns null if there's no next move
@@ -327,8 +341,8 @@ var ChessTree = function(pgn_string) {
     // calculate the score for each of the childNodes
     for (var i in currentNode.childNodes) {
       var childNode = currentNode.childNodes[i];
-      var current_weighted_score = childNode.score;
-      current_weighted_score *= Math.random();
+      var current_weighted_score = getWorstChildScore(childNode);
+      current_weighted_score *= 1 + Math.random()/10;
       current_weighted_score /= Math.sqrt(numberOfNodes(childNode));
       
       // we want to choose the node that is less memorized
@@ -417,8 +431,8 @@ var ChessTree = function(pgn_string) {
     turn: function () {
       return turn ();
     },
-    setTrainingNode: function () {
-      return setTrainingNode ();
+    setTrainingNode: function (trainingColor) {
+      return setTrainingNode (trainingColor);
     },
     calculateNextMove: function () {
       return calculateNextMove ();
