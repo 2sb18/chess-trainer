@@ -148,7 +148,7 @@ function resize_chess_trainer() {
 
 function reset_training_board() {
   tree.gotoTrainingNode();
-  score = tree.getScore(orientation.val());
+  score = tree.getScore();
   sync_board();
   train();
 }

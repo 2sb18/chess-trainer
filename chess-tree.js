@@ -207,17 +207,7 @@ var ChessTree = function(pgn_string) {
     return number_of_nodes;
   }
   
-  function getScore (trainingColor) {
-    var nodes = 0;
-    var sum = 0;
-    searchBranch (headNode, function (node) {
-                              if (node.move.color != trainingColor) {
-                                nodes++;
-                                sum += node.score;
-                              }
-                            });
-    return {"nodes":nodes, "sum":sum};
-  }
+
       
   // move is an object that requires a from and a to
   // if it deletes the branch, it returns the currentNode move.
@@ -327,6 +317,32 @@ var ChessTree = function(pgn_string) {
     return worst_score;
   }
   
+  function getScoreAndNumberOfNodes(node) {
+    var cumulative_score = 0,
+        number_of_nodes = 0;
+    
+    searchBranch(node, function (n) {
+                        if (n.move.color !== trainingColor && n.childNodes.length !== 0) {
+                          cumulative_score += n.score;
+                          number_of_nodes++;
+                        }
+                        });
+    if ( number_of_nodes === 0 ) {
+      throw "number_of_nodes is zero!";
+    }
+    return {"cumulative_score": cumulative_score, "number_of_nodes": number_of_nodes};
+  }
+  
+  function getWeightedAverageBranchScore(node) {
+    var score_and_nodes = getScoreAndNumberOfNodes(node);
+    return score_and_nodes.cumulative_score / score_and_nodes.number_of_nodes / Math.sqrt(score_and_nodes.number_of_nodes);
+  }
+  
+  function getScore() {
+    var score_and_nodes = getScoreAndNumberOfNodes(headNode);
+    return {"nodes":score_and_nodes.number_of_nodes, "sum":score_and_nodes.cumulative_score};
+  }
+  
   // returns null if there's no next move
   // lets make calcuating the next move easy. 
   // lowest number wins
@@ -341,9 +357,14 @@ var ChessTree = function(pgn_string) {
     // calculate the score for each of the childNodes
     for (var i in currentNode.childNodes) {
       var childNode = currentNode.childNodes[i];
-      var current_weighted_score = getWorstChildScore(childNode);
-      current_weighted_score *= 1 + Math.random()/10;
-      current_weighted_score /= Math.sqrt(numberOfNodes(childNode));
+      // if childNode doesn't have any children, then there's nothing to train on this branch
+      if (childNode.childNodes.length === 0) {
+        continue;
+      }
+      var current_weighted_score = getWeightedAverageBranchScore(childNode);
+      //alert("weighted score for " + childNode.move.san + " is " + current_weighted_score);
+      //current_weighted_score *= 1 + Math.random()/10;
+      //current_weighted_score /= Math.sqrt(numberOfNodes(childNode));
       
       // we want to choose the node that is less memorized
       if (childNodeFrontrunner === undefined || current_weighted_score < best_weighted_score) {
@@ -443,8 +464,8 @@ var ChessTree = function(pgn_string) {
     gotoTrainingNode: function () {
       return gotoTrainingNode ();
     },
-    getScore: function (trainingColor) {
-      return getScore(trainingColor);
+    getScore: function () {
+      return getScore();
     }
   };
 };
