@@ -10,7 +10,8 @@ var COLOR_WRONG = 'rgb(255, 135, 135)';
 var COLOR_RIGHT = 'rgb(103, 224, 90)';
 
 var FLASH_TIME = 100;
-var WAIT_TIME  = 1000;
+var WRONG_WAIT_TIME = 5000;
+var RIGHT_WAIT_TIME = 2000;
 
 var SIZE_OF_BOARD = 0.95;
 
@@ -149,6 +150,7 @@ function reset_training_board() {
   tree.gotoTrainingNode();
   score = tree.getScore(orientation.val());
   sync_board();
+  train();
 }
 
 function wrong_move() {
@@ -159,7 +161,7 @@ function wrong_move() {
 		$('body').css('background-color', COLOR_WRONG);
 		var correct_move = (tree.getNextMoves ())[0];
 		board.slide_piece(correct_move, function () {
-																			setTimeout(reset_training_board, WAIT_TIME);
+																			setTimeout(reset_training_board, WRONG_WAIT_TIME);
 																		});
 	} else {
 		$('body').css('background-color', COLOR_WRONG);
@@ -178,14 +180,14 @@ function make_move() {
 	next_move = tree.calculateNextMove();
 	if (next_move === null) {
 		$('body').css('background-color', COLOR_RIGHT);
-		setTimeout(reset_training_board, WAIT_TIME);
+		setTimeout(reset_training_board, RIGHT_WAIT_TIME);
 		return;
 	}
 	board.slide_piece(next_move,  function () {
 																	sync_board();
 																	if(tree.getNextMoves().length === 0) {
 																		$('body').css('background-color', COLOR_RIGHT);
-																		setTimeout(reset_training_board, WAIT_TIME);
+																		setTimeout(reset_training_board, RIGHT_WAIT_TIME);
 																	}
 																});
 }
