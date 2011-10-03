@@ -332,6 +332,25 @@ var ChessTree = function(pgn_string) {
     return {"nodes":score_and_nodes.number_of_nodes, "sum":score_and_nodes.cumulative_score};
   }
   
+  function setFailedNode() {
+    failedNode = currentNode;
+  }
+  
+  function resetFailedNode() {
+    failedNode = undefined;
+  }
+  
+  function isNodeInBranch(targetNode, branchNode) {
+    while(branchNode !== undefined) {
+      if (branchNode === targetNode) {
+        return true;
+      }
+      branchNode = branchNode.parentNode;
+    }
+    return false;
+  }
+    
+  
   // returns null if there's no next move
   // lets make calcuating the next move easy. 
   // lowest number wins
@@ -341,6 +360,7 @@ var ChessTree = function(pgn_string) {
     if (currentNode.childNodes.length === 0) {
       return null;
     }
+    
     var best_weighted_score;
     var childNodeFrontrunner = undefined;
     // calculate the score for each of the childNodes
@@ -352,6 +372,11 @@ var ChessTree = function(pgn_string) {
       } else {
         var current_weighted_score = getWeightedAverageBranchScore(childNode);
         current_weighted_score *= Math.random();
+      }
+      
+      // is childNode in the branch defined by failedNode?
+      if (failedNode !== undefined && isNodeInBranch(childNode, failedNode)) {
+        current_weighted_score = -1;  // lowest score wins, so this will win
       }
       
       // we want to choose the node that is less memorized
@@ -458,6 +483,12 @@ var ChessTree = function(pgn_string) {
     },
     getScore: function () {
       return getScore();
+    },
+    setFailedNode: function () {
+      return setFailedNode();
+    },
+    resetFailedNode: function () {
+      return resetFailedNode();
     }
   };
 };

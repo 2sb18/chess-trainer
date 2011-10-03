@@ -160,6 +160,7 @@ function wrong_move() {
 		// show correct move and reset
 		$('body').css('background-color', COLOR_WRONG);
 		var correct_move = (tree.getNextMoves ())[0];
+    tree.setFailedNode();
 		board.slide_piece(correct_move, function () {
 																			setTimeout(reset_training_board, WRONG_WAIT_TIME);
 																		});
@@ -180,6 +181,7 @@ function make_move() {
 	next_move = tree.calculateNextMove();
 	if (next_move === null) {
 		$('body').css('background-color', COLOR_RIGHT);
+    tree.resetFailedNode();
 		setTimeout(reset_training_board, RIGHT_WAIT_TIME);
 		return;
 	}
