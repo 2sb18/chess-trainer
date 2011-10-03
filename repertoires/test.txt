@@ -19,3 +19,7 @@
 
 
  { %0 } e4 { %0.88 } ( d4 { %1 } d5 { %0 } f3 { %0.99 } ( c4 { %0.99 } e5 { %0 } ) Nf6 { %0 } ) Nf6 { %0 } h3 { %0.88 } ( a3 { %0 } ) g6 { %0 }
+
+
+
+ { My Black repertoire.%0 } d4 { %1 } d5 { %0 } c4 { Queen's Gambit.%1 } e5 { Albin Countergambit! Very agressive style.%0 } cxd5 { %0.5 } Qxd5 { %0 } Nc3 { %0 } Qxd4 { %0 } Qxd4 { %0 } exd4 { %0 } Nb5 { %0 }

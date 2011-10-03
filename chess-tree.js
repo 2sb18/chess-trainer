@@ -18,6 +18,7 @@ var ChessTree = function(pgn_string) {
   var currentNode;
   var headNode;
   var trainingNode;
+  var failedNode = undefined;
   var trainingColor;
 	importRepertoire(pgn_string);
 
@@ -305,18 +306,6 @@ var ChessTree = function(pgn_string) {
     return engine.turn();
   }
   
-  function getWorstChildScore(node) {
-    var worst_score = 100000000;
-    searchBranch(node, function (node) {
-                          if (node.move.color != trainingColor) {
-                            if(node.score < worst_score) {
-                              worst_score = node.score;
-                            }
-                          }
-                       });
-    return worst_score;
-  }
-  
   function getScoreAndNumberOfNodes(node) {
     var cumulative_score = 0,
         number_of_nodes = 0;
@@ -357,20 +346,23 @@ var ChessTree = function(pgn_string) {
     // calculate the score for each of the childNodes
     for (var i in currentNode.childNodes) {
       var childNode = currentNode.childNodes[i];
-      // if childNode doesn't have any children, then there's nothing to train on this branch
+      
       if (childNode.childNodes.length === 0) {
-        continue;
+        current_weighted_score = 1; // if childNode doesn't have any children, treat node as completely known.
+      } else {
+        var current_weighted_score = getWeightedAverageBranchScore(childNode);
+        current_weighted_score *= Math.random();
       }
-      var current_weighted_score = getWeightedAverageBranchScore(childNode);
-      //alert("weighted score for " + childNode.move.san + " is " + current_weighted_score);
-      //current_weighted_score *= 1 + Math.random()/10;
-      //current_weighted_score /= Math.sqrt(numberOfNodes(childNode));
       
       // we want to choose the node that is less memorized
       if (childNodeFrontrunner === undefined || current_weighted_score < best_weighted_score) {
         childNodeFrontrunner = childNode;
         best_weighted_score = current_weighted_score;
       }
+    }
+    
+    if(childNodeFrontrunner === undefined) {
+      throw "no childNode was found!";
     }
     
     var move = engine.move(childNodeFrontrunner.move);
