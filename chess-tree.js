@@ -324,7 +324,7 @@ var ChessTree = function(pgn_string) {
   
   function getWeightedAverageBranchScore(node) {
     var score_and_nodes = getScoreAndNumberOfNodes(node);
-    return score_and_nodes.cumulative_score / score_and_nodes.number_of_nodes / Math.sqrt(score_and_nodes.number_of_nodes);
+    return score_and_nodes.cumulative_score / score_and_nodes.number_of_nodes / Math.log(score_and_nodes.number_of_nodes + 1);
   }
   
   function getScore() {

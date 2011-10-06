@@ -189,6 +189,7 @@ function make_move() {
 																	sync_board();
 																	if(tree.getNextMoves().length === 0) {
 																		$('body').css('background-color', COLOR_RIGHT);
+                                    tree.resetFailedNode();
 																		setTimeout(reset_training_board, RIGHT_WAIT_TIME);
 																	}
 																});
